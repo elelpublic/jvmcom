@@ -58,7 +58,7 @@ public class Main {
     }
     else if( command.equals( "client" ) ) {
       Client client = new Client( host, port );
-      client.connect();
+      client.connect( true );
     }
 
     Runtime.getRuntime().halt( 0 );

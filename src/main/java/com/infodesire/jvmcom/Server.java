@@ -2,6 +2,8 @@ package com.infodesire.jvmcom;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,6 +18,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.infodesire.jvmcom.ProtocolParser.Token;
 import static com.infodesire.jvmcom.ProtocolParser.parseFirstWord;
@@ -24,7 +27,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 public class Server {
 
 
-  private final int port;
+  private int port;
   private boolean shutdown = false;
   private int threadCount = 10;
   private ConcurrentHashMap<String, Map<String, String>> maps = new ConcurrentHashMap<>(
@@ -32,29 +35,83 @@ public class Server {
     0.8f, // load factor
     10 // concurrency level (number of concurrent modifications)
     );
+  private Thread serverThread;
+
+
+  /**
+   * Make threads names easier to read for debugging
+   */
+  protected String serverThreadName, workerThreadName;
+
+  private static Logger logger = LoggerFactory.getLogger( "Server" );
 
 
   public Server( int port ) {
     this.port = port;
-
   }
 
 
   public void start() throws IOException {
 
     ServerSocket serverSocket = new ServerSocket( port );
-    ExecutorService executorService = Executors.newFixedThreadPool( threadCount );
-
-    while( !shutdown ) {
-      System.out.printf( "Waiting for connections on port %d.%n", port );
-      Socket socket = serverSocket.accept();
-      executorService.submit( new Worker( socket ) );
+    if( port == 0 ) {
+      port = serverSocket.getLocalPort();
     }
 
-    executorService.shutdownNow();
+    stop();
+
+    serverThread = new Thread() {
+      public void run() {
+        if( serverThreadName != null ) {
+          Thread.currentThread().setName( serverThreadName );
+        }
+        ExecutorService executorService = Executors.newFixedThreadPool( threadCount );
+        while( !shutdown ) {
+          logger.info( "Waiting for connections on port " + port );
+          Socket socket = null;
+          try {
+            socket = serverSocket.accept();
+          }
+          catch( IOException ex ) {
+            ex.printStackTrace();
+          }
+          executorService.submit( new Worker( socket ) );
+        }
+        executorService.shutdownNow();
+      }
+    };
+
+    shutdown = false;
+    serverThread.start();
 
   }
 
+  private void stop() {
+    shutdown = true;
+    if( serverThread != null ) {
+      try {
+        serverThread.join(100);
+      }
+      catch( InterruptedException ex ) {}
+      finally {
+        try {
+          if( serverThread.isAlive() ) {
+            serverThread.interrupt();
+          }
+        }
+        catch( Exception ex ) {
+          ex.printStackTrace();
+        }
+        serverThread = null;
+      }
+    }
+  }
+
+  public int getPort() {
+    return port;
+  }
+
+  private static AtomicLong workerCounter = new AtomicLong();
 
   class Worker implements Runnable {
 
@@ -67,7 +124,10 @@ public class Server {
 
     @Override
     public void run() {
-      System.out.println( "Accepted new connection." );
+      if( workerThreadName != null ) {
+        Thread.currentThread().setName( String.format( workerThreadName, workerCounter.incrementAndGet() ) );
+      }
+      logger.info( "Accepted new connection." );
       InputStream in = null;
       OutputStream out = null;
       try {
@@ -78,7 +138,7 @@ public class Server {
         send( "Welcome!%n" );
         while( true ) {
           String line = reader.readLine();
-          System.out.printf( "Request: '%s'%n", line );
+          logger.info( "Client request: '" + line + "'" );
           if( line.equals( "help" ) ) {
             printHelp( writer );
           }
@@ -173,7 +233,7 @@ public class Server {
           catch( IOException ex ) {}
         }
       }
-      System.out.println( "Connection closed." );
+      logger.info( "Connection closed." );
     }
 
     private Map<String, String> getMap( Token command ) {
@@ -217,7 +277,9 @@ public class Server {
     }
 
     private void send( String line, Object... parames ) {
-      writer.printf( line, parames );
+      String reply = String.format( line, parames );
+      logger.debug( "Sending: " + reply.trim() );
+      writer.print( reply );
       writer.flush();
     }
 
@@ -238,7 +300,6 @@ public class Server {
     }
 
   }
-
 
   private Map getMapImpl( String nameOfMap, boolean createIfMissing ) {
     if( createIfMissing ) {

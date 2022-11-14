@@ -42,7 +42,17 @@
 
         Persistent collections
         -->
+        <!-- not used yet!?
         <dependency org="org.pcollections" name="pcollections" rev="4.0.1"/>
+        -->
+
+        <!--
+        https://mvnrepository.com/artifact/org.slf4j/slf4j-api
+
+        Logging abstraction
+        -->
+        <dependency org="org.slf4j" name="slf4j-api" rev="${slf4j.version}"/>
+        <dependency org="org.slf4j" name="slf4j-simple" rev="${slf4j.version}"/>
 
     </dependencies>
 
