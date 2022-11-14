@@ -40,6 +40,14 @@
     </target>
 
     <target name="compile" depends="fetchlibs">
+
+        <path id="thirparty.jars">
+            <pathelement location="lib/commons-lang3-${commons-lang3.version}.jar" />
+            <pathelement location="lib/commons-cli-${commons-cli.version}.jar" />
+            <pathelement location="lib/slf4j-api-${slf4j.version}.jar" />
+            <pathelement location="lib/slf4j-simple-${slf4j.version}.jar" />
+        </path>
+
         <mkdir dir="target/classes" />
         <javac
             srcdir="src/main/java"
@@ -47,10 +55,7 @@
             debug="true"
             >
             <src path="src/main/java" />
-            <classpath>
-                <pathelement location="lib/commons-lang3-${commons-lang3.version}.jar" />
-                <pathelement location="lib/commons-cli-${commons-cli.version}.jar" />
-            </classpath>
+            <classpath refid="thirparty.jars" />
         </javac>
         <mkdir dir="target/test-classes" />
         <javac
@@ -59,10 +64,9 @@
             debug="true"
             >
             <src path="src/test/java" />
+            <classpath refid="thirparty.jars" />
             <classpath>
                 <pathelement path="target/classes" />
-                <pathelement location="lib/commons-lang3-${commons-lang3.version}.jar" />
-                <pathelement location="lib/commons-cli-${commons-cli.version}.jar" />
             </classpath>
         </javac>
         <mkdir dir="target/integration-classes" />
@@ -72,10 +76,9 @@
             debug="true"
             >
             <src path="src/integration/java" />
+            <classpath refid="thirparty.jars" />
             <classpath>
                 <pathelement path="target/classes" />
-                <pathelement location="lib/commons-lang3-${commons-lang3.version}.jar" />
-                <pathelement location="lib/commons-cli-${commons-cli.version}.jar" />
             </classpath>
         </javac>
     </target>
