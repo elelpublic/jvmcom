@@ -1,5 +1,6 @@
-package com.infodesire.sample;
+package com.infodesire.jvmcom;
 
+import com.sun.tools.attach.AttachNotSupportedException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -17,7 +18,7 @@ public class Main {
 
   private static Options options;
 
-  public static int main( String... args ) throws IOException, ParseException {
+  public static void main( String... args ) throws IOException, ParseException {
 
     print( "Demo 1.0" );
     print( "Running as " + SystemUtils.getUserName() + "@" + InetAddress.getLocalHost().getHostName() );
@@ -32,36 +33,35 @@ public class Main {
 
     if( argslist.isEmpty() ) {
       showUsage( "No command given." );
-      return 1;
+      Runtime.getRuntime().halt( 1 );
     }
 
     String command = argslist.get( 0 );
 
-    boolean lowerCase = false;
-    int repeat = 1;
+    String host = "localhost";
+    int port = 44000;
 
-    if( cmd.hasOption( "l" ) ) {
-      lowerCase = true;
+    if( cmd.hasOption( "h" ) ) {
+      host = cmd.getOptionValue( "h" );
     }
 
-    if( cmd.hasOption( "r" ) ) {
-      repeat = Integer.parseInt( cmd.getOptionValue( "r" ) );
+    if( cmd.hasOption( "p" ) ) {
+      port = Integer.parseInt( cmd.getOptionValue( "p" ) );
     }
 
     if( command.equals( "help" ) ) {
       showUsage( "" );
     }
-    else if( command.equals( "world" ) ) {
-      String s = "Hello World!";
-      if( lowerCase ) {
-        s = s.toLowerCase();
-      }
-      for( int i = 0; i < repeat; i++ ) {
-        print( s );
-      }
+    else if( command.equals( "server" ) ) {
+      Server server = new Server( port );
+      server.start();
+    }
+    else if( command.equals( "client" ) ) {
+      Client client = new Client( host, port );
+      client.connect();
     }
 
-    return 0;
+    Runtime.getRuntime().halt( 0 );
 
   }
   
@@ -72,15 +72,23 @@ public class Main {
     Options options = new Options();
 
     // add l option for lowercase
-    options.addOption("l", false, "print lower case");
+    //options.addOption( "l", false, "print lower case" );
 
-    // add r option for repeats
     options.addOption(
       Option.builder()
-        .argName( "repeat" )
-        .option( "r" )
+        .argName( "host" )
+        .option( "h" )
         .hasArg()
-        .desc( "repeat the output r times" )
+        .desc( "host name, default is localhost" )
+        .build()
+    );
+
+    options.addOption(
+      Option.builder()
+        .argName( "port" )
+        .option( "p" )
+        .hasArg()
+        .desc( "port, default is 44000" )
         .build()
     );
 
@@ -97,7 +105,8 @@ public class Main {
     print( "" );
     print( "commands:" );
     print( "help \t show help" );
-    print( "world \t show hello world" );
+    print( "server \t start a server" );
+    print( "client \t start a server" );
 
   }
 

@@ -55,28 +55,30 @@
         </javac>
     </target>
 
-    <target name="hello.help">
-        <property name="commandline" value="help" />
-        <antcall target="hello" />
+    <target name="hostport">
+        <property name="host" value="localhost" />
+        <property name="port" value="44000" />
     </target>
 
-    <target name="hello.world">
-        <property name="commandline" value="-l world" />
-        <antcall target="hello" />
+    <target name="server" >
+        <property name="command" value="server" />
+        <antcall target="main" />
     </target>
 
-    <target name="hello.repeat">
-        <property name="commandline" value="-r 5 world" />
-        <antcall target="hello" />
+    <target name="client" depends="test-quietly, hostport">
+        <echo file="client.sh" >#!/bin/sh
+java -cp target/classes:lib/commons-cli-${commons-cli.version}.jar:lib/commons-lang3-${commons-lang3.version}.jar com.infodesire.jvmcom.Main -h ${host} -p ${port} client
+        </echo>
+        <exec command="chmod +x client.sh"></exec>
+        <echo>Call ./client.sh</echo>
     </target>
 
-    <target name="hello" depends="test-quietly">
-        <property name="commandline" value="world" />
+    <target name="main" depends="test-quietly, hostport">
         <java
             classpath="target/classes"
-            classname="com.infodesire.sample.Main"
+            classname="com.infodesire.jvmcom.Main"
             >
-            <arg line="${commandline}" />
+            <arg line="-h ${host} -p ${port} ${command}" />
 
             <classpath>
                 <pathelement location="lib/commons-lang3-${commons-lang3.version}.jar" />
@@ -183,10 +185,13 @@ ant hello.groovy .............. Test the groovy installation
 ant clean ..................... Delete generated files
 ant clean.all ................. Delete all generated or downloaded files
 ant test ...................... Run unit tests
-ant hello ..................... Run program
-ant hello.world ............... Run program with "-l" option
-ant hello.repeat .............. Run program with "-r 5" option
-ant hello.help ................ Run program with "help" command
+ant server .................... Start server
+ant client .................... Start client
+
+Options:
+
+-Dhost=locahost ............... Host to connect client to
+-Dport=port ................... Port for server or client connection
 
         </echo>
     </target>

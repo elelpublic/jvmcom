@@ -1,2 +1,3 @@
-# templateAntIvy
-Template for a java project using ant and ivy.
+# jvmcom
+
+Communicate between JVM instances.

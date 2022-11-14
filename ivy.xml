@@ -37,6 +37,12 @@
         -->
         <dependency org="commons-cli" name="commons-cli" rev="${commons-cli.version}"/>
 
+        <!--
+        https://mvnrepository.com/artifact/org.pcollections/pcollections
+
+        Persistent collections
+        -->
+        <dependency org="org.pcollections" name="pcollections" rev="4.0.1"/>
 
     </dependencies>
 
