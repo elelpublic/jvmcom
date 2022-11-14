@@ -86,6 +86,11 @@ public class Server {
 
   }
 
+
+  public void waitUntilFinish() throws InterruptedException {
+    serverThread.join();
+  }
+
   private void stop() {
     shutdown = true;
     if( serverThread != null ) {
@@ -210,8 +215,7 @@ public class Server {
               }
             }
             else {
-              send( "Error: Unknown command '%s'%n", line );
-              printHelp( writer );
+              send( "Error: Unknown command '%s' (try 'help' for a list of commands) %n", line );
             }
           }
         }

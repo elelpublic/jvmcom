@@ -6,6 +6,13 @@
 
         <property file="project.properties" />
 
+        <path id="thirdparty.jars">
+            <pathelement location="lib/commons-lang3-${commons-lang3.version}.jar" />
+            <pathelement location="lib/commons-cli-${commons-cli.version}.jar" />
+            <pathelement location="lib/slf4j-api-${slf4j.version}.jar" />
+            <pathelement location="lib/slf4j-simple-${slf4j.version}.jar" />
+        </path>
+
     </target>
 
     <target name="setup.ivy" depends="properties" >
@@ -41,13 +48,6 @@
 
     <target name="compile" depends="fetchlibs">
 
-        <path id="thirparty.jars">
-            <pathelement location="lib/commons-lang3-${commons-lang3.version}.jar" />
-            <pathelement location="lib/commons-cli-${commons-cli.version}.jar" />
-            <pathelement location="lib/slf4j-api-${slf4j.version}.jar" />
-            <pathelement location="lib/slf4j-simple-${slf4j.version}.jar" />
-        </path>
-
         <mkdir dir="target/classes" />
         <javac
             srcdir="src/main/java"
@@ -55,7 +55,7 @@
             debug="true"
             >
             <src path="src/main/java" />
-            <classpath refid="thirparty.jars" />
+            <classpath refid="thirdparty.jars" />
         </javac>
         <mkdir dir="target/test-classes" />
         <javac
@@ -64,7 +64,7 @@
             debug="true"
             >
             <src path="src/test/java" />
-            <classpath refid="thirparty.jars" />
+            <classpath refid="thirdparty.jars" />
             <classpath>
                 <pathelement path="target/classes" />
             </classpath>
@@ -76,7 +76,7 @@
             debug="true"
             >
             <src path="src/integration/java" />
-            <classpath refid="thirparty.jars" />
+            <classpath refid="thirdparty.jars" />
             <classpath>
                 <pathelement path="target/classes" />
             </classpath>
@@ -94,11 +94,11 @@
     </target>
 
     <target name="client" depends="test-quietly, hostport">
-        <echo file="client.sh" >#!/bin/sh
-java -cp target/classes:lib/commons-cli-${commons-cli.version}.jar:lib/commons-lang3-${commons-lang3.version}.jar com.infodesire.jvmcom.Main -h ${host} -p ${port} client
+        <echo file="target/client.sh" >#!/bin/sh
+java -cp target/classes:lib/* com.infodesire.jvmcom.Main -h ${host} -p ${port} client
         </echo>
-        <exec command="chmod +x client.sh"></exec>
-        <echo>Call ./client.sh</echo>
+        <exec command="chmod +x target/client.sh"></exec>
+        <echo>Call target/client.sh</echo>
     </target>
 
     <target name="main" depends="test-quietly, hostport">
@@ -107,11 +107,7 @@ java -cp target/classes:lib/commons-cli-${commons-cli.version}.jar:lib/commons-l
             classname="com.infodesire.jvmcom.Main"
             >
             <arg line="-h ${host} -p ${port} ${command}" />
-
-            <classpath>
-                <pathelement location="lib/commons-lang3-${commons-lang3.version}.jar" />
-                <pathelement location="lib/commons-cli-${commons-cli.version}.jar" />
-            </classpath>
+            <classpath refid="thirdparty.jars" />
         </java>
     </target>
 

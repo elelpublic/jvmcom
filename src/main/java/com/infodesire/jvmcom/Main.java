@@ -18,7 +18,7 @@ public class Main {
 
   private static Options options;
 
-  public static void main( String... args ) throws IOException, ParseException {
+  public static void main( String... args ) throws IOException, ParseException, InterruptedException {
 
     print( "Demo 1.0" );
     print( "Running as " + SystemUtils.getUserName() + "@" + InetAddress.getLocalHost().getHostName() );
@@ -55,6 +55,7 @@ public class Main {
     else if( command.equals( "server" ) ) {
       Server server = new Server( port );
       server.start();
+      server.waitUntilFinish();
     }
     else if( command.equals( "client" ) ) {
       Client client = new Client( host, port );

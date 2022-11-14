@@ -48,7 +48,7 @@ public class Client {
           Runtime.getRuntime().halt( 0 );
         }
         sendImpl( line );
-        System.out.print( "< " + getReply() );
+        System.out.println( "< " + getReply() );
         System.out.print( "< " );
         line = console.readLine();
       }
