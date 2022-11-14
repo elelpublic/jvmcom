@@ -3,6 +3,7 @@ package com.infodesire.jvmcom;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.Assert.assertEquals;
 
@@ -34,5 +35,43 @@ public class ClientServerTest {
     assertEquals( "OK", reply.toString() );
 
   }
+
+
+  int DATA_SIZE = 100000;
+
+  @Test
+  public void testBigData() throws IOException {
+
+    System.setProperty( "org.slf4j.simpleLogger.defaultLogLevel", "error" );
+    Server server = new Server( 0 );
+    server.start();
+
+    int port = server.getPort();
+
+    Client client = new Client( "127.0.0.1", port );
+    client.connect( false );
+
+    for( int i = 0; i < DATA_SIZE; i++ ) {
+      client.send( "put main v-" + i + " " + i );
+    }
+
+    StringBuffer reply = client.send( "size main" );
+    assertEquals( DATA_SIZE, Integer.parseInt( reply.toString() ) );
+
+  }
+
+  @Test
+  public void testBigDataLocal() throws IOException {
+
+    ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
+
+    for( int i = 0; i < DATA_SIZE; i++ ) {
+      map.put( "v-" + i, "" + i );
+    }
+
+    assertEquals( DATA_SIZE, map.size() );
+
+  }
+
 
 }
