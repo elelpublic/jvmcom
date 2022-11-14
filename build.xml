@@ -42,13 +42,38 @@
     <target name="compile" depends="fetchlibs">
         <mkdir dir="target/classes" />
         <javac
-                srcdir="src/main/java"
-                destdir="target/classes"
-                debug="true"
-        >
+            srcdir="src/main/java"
+            destdir="target/classes"
+            debug="true"
+            >
             <src path="src/main/java" />
+            <classpath>
+                <pathelement location="lib/commons-lang3-${commons-lang3.version}.jar" />
+                <pathelement location="lib/commons-cli-${commons-cli.version}.jar" />
+            </classpath>
+        </javac>
+        <mkdir dir="target/test-classes" />
+        <javac
+            srcdir="src/test/java"
+            destdir="target/test-classes"
+            debug="true"
+            >
             <src path="src/test/java" />
             <classpath>
+                <pathelement path="target/classes" />
+                <pathelement location="lib/commons-lang3-${commons-lang3.version}.jar" />
+                <pathelement location="lib/commons-cli-${commons-cli.version}.jar" />
+            </classpath>
+        </javac>
+        <mkdir dir="target/integration-classes" />
+        <javac
+            srcdir="src/integration/java"
+            destdir="target/integration-classes"
+            debug="true"
+            >
+            <src path="src/integration/java" />
+            <classpath>
+                <pathelement path="target/classes" />
                 <pathelement location="lib/commons-lang3-${commons-lang3.version}.jar" />
                 <pathelement location="lib/commons-cli-${commons-cli.version}.jar" />
             </classpath>
@@ -100,7 +125,6 @@ java -cp target/classes:lib/commons-cli-${commons-cli.version}.jar:lib/commons-l
     </target>
 
     <target name="test" depends="test.run">
-        <fail if="failures" ></fail>
         <groovy>
             import java.awt.Desktop;
             if (Desktop.isDesktopSupported()) {
@@ -114,6 +138,24 @@ java -cp target/classes:lib/commons-cli-${commons-cli.version}.jar:lib/commons-l
             }
             }
         </groovy>
+        <fail if="failures" ></fail>
+    </target>
+
+    <target name="integration" depends="integration.run">
+        <groovy>
+            import java.awt.Desktop;
+            if (Desktop.isDesktopSupported()) {
+            try {
+            Desktop desktop = Desktop.getDesktop();
+            File myFile = new File("target/integration-report/report/junit-noframes.html");
+            desktop.open(myFile);
+            }
+            catch (IOException ex) {
+            ex.printStackTrace();
+            }
+            }
+        </groovy>
+        <fail if="failures" ></fail>
     </target>
 
     <target name="test-quietly" depends="test.run">
@@ -122,9 +164,6 @@ java -cp target/classes:lib/commons-cli-${commons-cli.version}.jar:lib/commons-l
 
 
     <target name="test.run" depends="compile, setup.groovy">
-
-        <!-- default fallback: test all -->
-        <property name="test.include" value="**/*Test.class" />
 
         <mkdir dir="target/test-generated-files" />
         <junit
@@ -136,16 +175,17 @@ java -cp target/classes:lib/commons-cli-${commons-cli.version}.jar:lib/commons-l
             <classpath>
                 <fileset dir="lib" />
                 <pathelement location="target/classes" />
+                <pathelement location="target/test-classes" />
             </classpath>
 
             <batchtest
-                    failureproperty="failures"
-                    errorproperty="failures"
-                    todir="target/test-generated-files"
-            >
+                failureproperty="failures"
+                errorproperty="failures"
+                todir="target/test-generated-files"
+                >
 
-                <fileset dir="target/classes" >
-                    <include name="${test.include}" />
+                <fileset dir="target/test-classes" >
+                    <include name="**/*Test.class" />
                 </fileset>
 
             </batchtest>
@@ -160,6 +200,47 @@ java -cp target/classes:lib/commons-cli-${commons-cli.version}.jar:lib/commons-l
                 <include name="TEST-*.xml"/>
             </fileset>
             <report format="noframes" todir="target/test-report/report"/>
+        </junitreport>
+
+    </target>
+
+    <target name="integration.run" depends="compile, setup.groovy">
+
+        <mkdir dir="target/integration-generated-files" />
+        <junit
+            fork="true"
+            printsummary="on"
+            >
+            <!-- fork:true is necessary, because some tests use ant themselves -->
+
+            <classpath>
+                <fileset dir="lib" />
+                <pathelement location="target/classes" />
+                <pathelement location="target/integration-classes" />
+            </classpath>
+
+            <batchtest
+                failureproperty="failures"
+                errorproperty="failures"
+                todir="target/integration-generated-files"
+                >
+
+                <fileset dir="target/integration-classes" >
+                    <include name="**/*Test.class" />
+                </fileset>
+
+            </batchtest>
+
+            <formatter type="xml" />
+
+        </junit>
+
+        <mkdir dir="target/integration-report" />
+        <junitreport todir="target/integration-report">
+            <fileset dir="target/integration-generated-files">
+                <include name="TEST-*.xml"/>
+            </fileset>
+            <report format="noframes" todir="target/integration-report/report"/>
         </junitreport>
 
     </target>
@@ -182,6 +263,8 @@ Sample project using ant and ivy
 
 ant tools.install ............. Install tools: ivy
 ant hello.groovy .............. Test the groovy installation
+ant test ...................... Run unit tests
+ant integration ............... Run integration tests
 ant clean ..................... Delete generated files
 ant clean.all ................. Delete all generated or downloaded files
 ant test ...................... Run unit tests
