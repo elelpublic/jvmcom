@@ -83,12 +83,30 @@
         </javac>
     </target>
 
+    <target name="jar" depends="compile">
+        <tstamp>
+            <format property="touch.time" pattern="dd.MM.yyyy HH:mm:ss" />
+        </tstamp>
+
+        <jar
+            jarfile="target/jvmcom-${jvmcom.version}.jar"
+            basedir="target/classes"
+            >
+            <manifest>
+                <attribute name="Create-Timestamp" value="${touch.time}" />
+                <attribute name="Main-Class" value="com.infodesire.jvmcom.Main" />
+                <attribute name="Class-Path"
+                           value="commons-cli-${commons-cli.version}.jar commons-lang3-${commons-lang3.version}.jar slf4j-api-${slf4j.version}.jar slf4j-simple-${slf4j.version}.jar" />
+            </manifest>
+        </jar>
+    </target>
+
     <target name="hostport">
         <property name="host" value="localhost" />
         <property name="port" value="44000" />
     </target>
 
-    <target name="server" >
+    <target name="server">
         <property name="command" value="server" />
         <antcall target="main" />
     </target>
@@ -253,6 +271,45 @@ java -cp target/classes:lib/* com.infodesire.jvmcom.Main -h ${host} -p ${port} c
         <delete dir="tools" />
     </target>
 
+    <target name="web.build" depends="fetchlibs, setup.groovy" >
+
+        <unzip
+            src="lib/tomcat-${tomcat.version}.zip"
+            dest="target"
+            />
+
+        <chmod perm="+x">
+            <fileset dir="target/apache-tomcat-9.0.68/bin/" >
+                <include name="*" />
+            </fileset>
+        </chmod>
+
+        <mkdir dir="target/apache-tomcat-9.0.68/webapps/jvmcom" />
+
+        <copy todir="target/apache-tomcat-9.0.68/webapps/jvmcom">
+            <fileset dir="src/main/web">
+                <include name="**/*" ></include>
+            </fileset>
+        </copy>
+
+    </target>
+
+    <target name="web.start" depends="web.build" >
+        <exec command="target/apache-tomcat-9.0.68/bin/catalina.sh start" />
+        <groovy>
+            import java.awt.Desktop;
+            import java.net.URI;
+            if (Desktop.isDesktopSupported()) {
+                Desktop desktop = Desktop.getDesktop();
+                Desktop.getDesktop().browse( new URI( "http://localhost:8080/jvmcom" ) );
+            }
+        </groovy>
+    </target>
+
+    <target name="web.stop" depends="fetchlibs">
+        <exec command="target/apache-tomcat-9.0.68/bin/catalina.sh stop" />
+    </target>
+
     <target name="help" depends="usage" />
 
     <target name="usage">
@@ -267,13 +324,17 @@ ant integration ............... Run integration tests
 ant clean ..................... Delete generated files
 ant clean.all ................. Delete all generated or downloaded files
 ant test ...................... Run unit tests
-ant server .................... Start server
-ant client .................... Start client
+
+ant server .................... Start server in terminal
+ant client .................... Start client in terminal
+
+ant web.start ................. Start tomcat
+ant web.stop .................. Stop tomcat
 
 Options:
-
 -Dhost=locahost ............... Host to connect client to
 -Dport=port ................... Port for server or client connection
+
 
         </echo>
     </target>

@@ -54,6 +54,15 @@
         <dependency org="org.slf4j" name="slf4j-api" rev="${slf4j.version}"/>
         <dependency org="org.slf4j" name="slf4j-simple" rev="${slf4j.version}"/>
 
+        <!--
+        https://mvnrepository.com/artifact/org.apache.tomcat/tomcat
+
+        Setup 2+ application servers to communicate among them
+        -->
+        <dependency org="org.apache.tomcat" name="tomcat" rev="${tomcat.version}">
+            <artifact name="tomcat" type="zip" ext="zip"/>
+        </dependency>
+
     </dependencies>
 
 </ivy-module>
