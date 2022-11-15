@@ -63,6 +63,13 @@
             <artifact name="tomcat" type="zip" ext="zip"/>
         </dependency>
 
+        <!--
+        https://mvnrepository.com/artifact/javax.servlet/javax.servlet-api
+
+        Servlet api, for compiling only
+        -->
+        <dependency org="javax.servlet" name="javax.servlet-api" rev="${javax.servlet-api.version}"/>
+
     </dependencies>
 
 </ivy-module>
