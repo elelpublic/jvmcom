@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.Assert.assertEquals;
 
-public class ClientServerTest {
+public class PerformanceTest {
 
 
   @Test
@@ -17,7 +17,7 @@ public class ClientServerTest {
 
     StringBuffer reply;
 
-    Server server = new Server( 0 );
+    Server server = new Server( 0, 3 );
 
     // make threads easier to read for development
     Thread.currentThread().setName( "MAIN____" );
@@ -43,7 +43,7 @@ public class ClientServerTest {
   public void testBigData() throws IOException {
 
     System.setProperty( "org.slf4j.simpleLogger.defaultLogLevel", "error" );
-    Server server = new Server( 0 );
+    Server server = new Server( 0, 3 );
     server.start();
 
     int port = server.getPort();

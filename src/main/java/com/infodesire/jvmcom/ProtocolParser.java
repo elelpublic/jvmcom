@@ -3,10 +3,10 @@ package com.infodesire.jvmcom;
 /**
  * Parse command send between servers and clients
  */
-public class ProtocolParser {
+class ProtocolParser {
 
-  public static Token parseFirstWord( String line ) {
-    StringBuffer word = new StringBuffer( 10 );
+  static Token parseFirstWord( String line ) {
+    StringBuilder word = new StringBuilder( 10 );
     String restOfLine = null;
     boolean inWord = false;
     for( int i = 0; i < line.length(); i++ ) {
@@ -30,7 +30,7 @@ public class ProtocolParser {
     final String word;
     final String restOfLine;
 
-    public Token( String word, String restOfLine ) {
+    Token( String word, String restOfLine ) {
       this.word = word;
       this.restOfLine = restOfLine;
     }

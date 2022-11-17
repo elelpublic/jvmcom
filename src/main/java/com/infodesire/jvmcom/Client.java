@@ -86,7 +86,8 @@ public class Client {
     String newline = "";
     while( in.ready() ) {
       String line = in.readLine();
-      result.append( newline + line );
+      result.append( newline );
+      result.append( line );
       newline = "\n";
     }
 
@@ -102,6 +103,18 @@ public class Client {
   public void close() throws IOException {
     logger.info( "Closing connection." );
     socket.close();
+  }
+
+  /**
+   * Test if server is running
+   *
+   * @return Server replied
+   *
+   */
+  public boolean ping() throws IOException {
+    String reply = send( "ping" ).toString();
+    logger.info( "Ping reply: " + reply );
+    return reply.equals( "OK" );
   }
 
 }

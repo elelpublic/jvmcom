@@ -16,9 +16,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static com.infodesire.jvmcom.ProtocolParser.Token;
 import static com.infodesire.jvmcom.ProtocolParser.parseFirstWord;
@@ -26,111 +25,92 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public class Server {
 
-
   private int port;
-  private boolean shutdown = false;
-  private int threadCount = 10;
+  private int threadCount;
   private ConcurrentHashMap<String, Map<String, String>> maps = new ConcurrentHashMap<>(
     10, // initial capacity
     0.8f, // load factor
     10 // concurrency level (number of concurrent modifications)
     );
-  private Thread serverThread;
+  private ThreadPooledServerSocket serverSocketManager;
 
 
   /**
    * Make threads names easier to read for debugging
    */
-  protected String serverThreadName, workerThreadName;
+  String serverThreadName, workerThreadName;
 
   private static Logger logger = LoggerFactory.getLogger( "Server" );
 
 
-  public Server( int port ) {
+  /**
+   * Create server. To find a random free port, pass 0 as port. You can get the port number AFTER
+   * calling start using getPort().
+   *
+   * @param port Listening port - 0 for random free port
+   *
+   */
+  public Server( int port, int threadCount ) {
     this.port = port;
+    this.threadCount = threadCount;
   }
 
 
   public void start() throws IOException {
 
+    logger.info( "Trying to start server on port " + port );
+
     ServerSocket serverSocket = new ServerSocket( port );
     if( port == 0 ) {
       port = serverSocket.getLocalPort();
+      logger.info( "Free port found " + port );
     }
 
-    stop();
+    serverSocket.close();
 
-    serverThread = new Thread() {
-      public void run() {
-        if( serverThreadName != null ) {
-          Thread.currentThread().setName( serverThreadName );
-        }
-        ExecutorService executorService = Executors.newFixedThreadPool( threadCount );
-        while( !shutdown ) {
-          logger.info( "Waiting for connections on port " + port );
-          Socket socket = null;
-          try {
-            socket = serverSocket.accept();
-          }
-          catch( IOException ex ) {
-            ex.printStackTrace();
-          }
-          executorService.submit( new Worker( socket ) );
-        }
-        executorService.shutdownNow();
-      }
-    };
+    serverSocketManager = new ThreadPooledServerSocket( port, threadCount,
+      new WorkerFactory( workerThreadName ), serverThreadName );
 
-    shutdown = false;
-    serverThread.start();
-
-  }
-
-
-  public void waitUntilFinish() throws InterruptedException {
-    serverThread.join();
-  }
-
-  private void stop() {
-    shutdown = true;
-    if( serverThread != null ) {
-      try {
-        serverThread.join(100);
-      }
-      catch( InterruptedException ex ) {}
-      finally {
-        try {
-          if( serverThread.isAlive() ) {
-            serverThread.interrupt();
-          }
-        }
-        catch( Exception ex ) {
-          ex.printStackTrace();
-        }
-        serverThread = null;
-      }
-    }
   }
 
   public int getPort() {
     return port;
   }
 
-  private static AtomicLong workerCounter = new AtomicLong();
+  public void stop( long timeoutMs ) throws InterruptedException {
+    serverSocketManager.stop( timeoutMs );
+  }
 
-  class Worker implements Runnable {
 
-    private final Socket socket;
-    private PrintWriter writer;
+  class WorkerFactory implements Supplier<Consumer<Socket>> {
 
-    public Worker( Socket socket ) {
-      this.socket = socket;
+    private String threadName;
+
+    WorkerFactory( String threadName ) {
+      this.threadName = threadName;
     }
 
     @Override
-    public void run() {
-      if( workerThreadName != null ) {
-        Thread.currentThread().setName( String.format( workerThreadName, workerCounter.incrementAndGet() ) );
+    public Consumer<Socket> get() {
+      return new Worker( threadName );
+    }
+
+  }
+
+  class Worker implements Consumer<Socket> {
+
+    private final String threadName;
+    private PrintWriter writer;
+
+    Worker( String threadName ) {
+      this.threadName = threadName;
+    }
+
+    @Override
+    public void accept( Socket socket ) {
+
+      if( threadName != null ) {
+        Thread.currentThread().setName( threadName );
       }
       logger.info( "Accepted new connection." );
       InputStream in = null;
@@ -143,6 +123,9 @@ public class Server {
         send( "Welcome!%n" );
         while( true ) {
           String line = reader.readLine();
+          if( line == null ) {
+            break; // null means end of stream
+          }
           logger.info( "Client request: '" + line + "'" );
           if( line.equals( "help" ) ) {
             printHelp( writer );
@@ -157,7 +140,7 @@ public class Server {
             if( command.word.equals( "put" ) ) {
               Pair<Map<String, String>,Token> mapAndKey = getMapAndKey( command, true );
               if( mapAndKey != null ) {
-                Map map = mapAndKey.getLeft();
+                Map<String, String> map = mapAndKey.getLeft();
                 Token valueName = mapAndKey.getRight();
                 if( isEmpty( valueName.restOfLine ) ) {
                   send( "Error: value must not be null" );
@@ -214,6 +197,9 @@ public class Server {
                 send( "OK%n" );
               }
             }
+            else if( command.word.equals( "ping" ) ) {
+              send( "OK%n" );
+            }
             else {
               send( "Error: Unknown command '%s' (try 'help' for a list of commands) %n", line );
             }
@@ -261,7 +247,7 @@ public class Server {
         send( "Error: no map name given" );
       }
       else {
-        Map map = getMapImpl( mapName.word, createIfMissing );
+        Map<String, String> map = getMapImpl( mapName.word, createIfMissing );
         if( map == null ) {
           send( "Error: No map found named %s%n", mapName.word );
         }
@@ -292,6 +278,7 @@ public class Server {
       writer.println( "Available commands:" );
       writer.println( "" );
       writer.println( "help ................... show information on how to use the server" );
+      writer.println( "ping ................... will reply with OK when running" );
       writer.println( "bye .................... close connection" );
       writer.println( "put map key value ...... put value into map named 'map' under the given key" );
       writer.println( "get map key ............ get value from map named 'map' under the given key" );
@@ -305,9 +292,9 @@ public class Server {
 
   }
 
-  private Map getMapImpl( String nameOfMap, boolean createIfMissing ) {
+  private Map<String, String> getMapImpl( String nameOfMap, boolean createIfMissing ) {
     if( createIfMissing ) {
-      return maps.computeIfAbsent( nameOfMap, (key) -> { return new ConcurrentHashMap<>(); } );
+      return maps.computeIfAbsent( nameOfMap, (key) -> new ConcurrentHashMap<>() );
     }
     else {
       return maps.get( nameOfMap );

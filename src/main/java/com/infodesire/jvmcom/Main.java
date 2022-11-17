@@ -1,6 +1,5 @@
 package com.infodesire.jvmcom;
 
-import com.sun.tools.attach.AttachNotSupportedException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -14,9 +13,16 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.List;
 
+
+/**
+ * The command line version of server and client
+ *
+ */
 public class Main {
 
   private static Options options;
+
+  private static final int THREAD_COUNT = Integer.parseInt( System.getProperty( "com.infodesire.jvmcom.threadCount", "10" ) );
 
   public static void main( String... args ) throws IOException, ParseException, InterruptedException {
 
@@ -53,9 +59,9 @@ public class Main {
       showUsage( "" );
     }
     else if( command.equals( "server" ) ) {
-      Server server = new Server( port );
+      Server server = new Server( port, THREAD_COUNT );
       server.start();
-      server.waitUntilFinish();
+      server.stop( 1000 );
     }
     else if( command.equals( "client" ) ) {
       Client client = new Client( host, port );
@@ -67,7 +73,7 @@ public class Main {
   }
   
   
-  public static Options createOptions() {
+  private static Options createOptions() {
 
     // create Options object
     Options options = new Options();
