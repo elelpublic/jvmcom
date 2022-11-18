@@ -1,16 +1,9 @@
 package com.infodesire.jvmcom;
 
-import org.apache.commons.lang3.mutable.MutableBoolean;
+import com.infodesire.jvmcom.modules.MappedValuesServer;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -21,7 +14,7 @@ public class LifecycleTest {
   @Test
   public void testStartupShutdown() throws IOException, InterruptedException {
 
-    Server server = new Server( 0, 3 );
+    MappedValuesServer server = new MappedValuesServer( 0, 3 );
     server.start();
 
     int port = server.getPort();

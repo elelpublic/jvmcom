@@ -1,5 +1,6 @@
 package com.infodesire.jvmcom;
 
+import com.infodesire.jvmcom.modules.MappedValuesServer;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -17,12 +18,12 @@ public class PerformanceTest {
 
     StringBuffer reply;
 
-    Server server = new Server( 0, 3 );
+    MappedValuesServer server = new MappedValuesServer( 0, 3 );
 
     // make threads easier to read for development
     Thread.currentThread().setName( "MAIN____" );
-    server.serverThreadName = "SERVER__";
-    server.workerThreadName = "WORKER-%d";
+    server.setServerThreadName( "SERVER__" );
+    server.setWorkerThreadName( "WORKER-%d" );
 
     server.start();
     int port = server.getPort();
@@ -37,13 +38,13 @@ public class PerformanceTest {
   }
 
 
-  int DATA_SIZE = 100000;
+  int DATA_SIZE = 10000;
 
   @Test
   public void testBigData() throws IOException {
 
     System.setProperty( "org.slf4j.simpleLogger.defaultLogLevel", "error" );
-    Server server = new Server( 0, 3 );
+    MappedValuesServer server = new MappedValuesServer( 0, 3 );
     server.start();
 
     int port = server.getPort();
@@ -70,6 +71,35 @@ public class PerformanceTest {
     }
 
     assertEquals( DATA_SIZE, map.size() );
+
+  }
+
+
+  @Test
+  public void testStringBuilderVsStringBufferVsString() {
+
+    int COUNT = 10000;
+
+    long t0 = System.currentTimeMillis();
+    StringBuilder sbi = new StringBuilder();
+    for( int i = 0; i < COUNT; i++ ) {
+      sbi.append( i );
+    }
+    System.out.println( "StringBuilder " + (System.currentTimeMillis() - t0) + " ms" );
+
+    t0 = System.currentTimeMillis();
+    StringBuffer sbu = new StringBuffer();
+    for( int i = 0; i < COUNT; i++ ) {
+      sbu.append( i );
+    }
+    System.out.println( "StringBuffer " + (System.currentTimeMillis() - t0) + " ms" );
+
+    t0 = System.currentTimeMillis();
+    String s = "";
+    for( int i = 0; i < COUNT; i++ ) {
+      s += i;
+    }
+    System.out.println( "String " + (System.currentTimeMillis() - t0) + " ms" );
 
   }
 

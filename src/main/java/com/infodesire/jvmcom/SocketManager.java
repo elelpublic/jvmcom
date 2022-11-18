@@ -21,7 +21,7 @@ import java.util.function.Supplier;
  * Idea found here: https://stackoverflow.com/questions/25528634/reliably-closing-client-sockets-in-a-thread-pool-on-shutdown
  *
  */
-public class ThreadPooledServerSocket {
+public class SocketManager {
 
 
   private final ServerThread serverThread;
@@ -40,8 +40,8 @@ public class ThreadPooledServerSocket {
    * @param serverThreadName Optional name to be set to server thread
    *
    */
-  public ThreadPooledServerSocket( int port, int poolSize,
-   Supplier<Consumer<Socket>> workerFactory, String serverThreadName ) throws IOException {
+  public SocketManager( int port, int poolSize,
+    Supplier<Consumer<Socket>> workerFactory, String serverThreadName ) throws IOException {
 
     ServerSocket serverSocket = new ServerSocket( port );
 
@@ -94,6 +94,10 @@ public class ThreadPooledServerSocket {
     return serverThread.getPort();
   }
 
+  public void waitForShutDown() throws InterruptedException {
+    serverThread.join();
+  }
+
 
   class ServerThread extends Thread {
 
@@ -115,7 +119,9 @@ public class ThreadPooledServerSocket {
           pool.submit( worker );
           workers.add( worker );
         }
-        catch( IOException ex ) {}
+        catch( IOException ex ) {
+          ex.printStackTrace();
+        }
       }
     }
 

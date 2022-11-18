@@ -17,7 +17,7 @@ import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-public class ThreadPooledServerSocketTest {
+public class SocketManagerTest {
 
 
   private static List<String> log;
@@ -35,7 +35,7 @@ public class ThreadPooledServerSocketTest {
     String host = "localhost";
 
     Supplier<Consumer<Socket>> workerFactory = new WorkerFactory();
-    ThreadPooledServerSocket manager = new ThreadPooledServerSocket( 0, 3, workerFactory, "SERVER"  );
+    SocketManager manager = new SocketManager( 0, 3, workerFactory, "SERVER"  );
     int port = manager.getPort();
 
     Client client = new Client( host, port );
@@ -64,14 +64,14 @@ public class ThreadPooledServerSocketTest {
     String host = "localhost";
 
     Supplier<Consumer<Socket>> workerFactory = new WorkerFactory();
-    ThreadPooledServerSocket manager = new ThreadPooledServerSocket( 0, 3, workerFactory, "SERVER" );
+    SocketManager manager = new SocketManager( 0, 3, workerFactory, "SERVER" );
     int port = manager.getPort();
 
     assertEquals( "welcome", new Client( host, port ).receive() );
     manager.stop( 1000 );
     assertFalse( ping( host, port ) );
 
-    manager = new ThreadPooledServerSocket( port, 3, workerFactory, "SERVER" );
+    manager = new SocketManager( port, 3, workerFactory, "SERVER" );
     assertEquals( "welcome", new Client( host, port ).receive() );
     assertTrue( ping( host, port ) );
     manager.stop( 1000 );

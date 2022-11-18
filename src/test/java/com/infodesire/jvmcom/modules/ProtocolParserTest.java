@@ -1,5 +1,6 @@
-package com.infodesire.jvmcom;
+package com.infodesire.jvmcom.modules;
 
+import com.infodesire.jvmcom.modules.ProtocolParser;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

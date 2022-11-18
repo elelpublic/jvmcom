@@ -1,5 +1,6 @@
 package com.infodesire.jvmcom;
 
+import com.infodesire.jvmcom.modules.MappedValuesServer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -59,9 +60,9 @@ public class Main {
       showUsage( "" );
     }
     else if( command.equals( "server" ) ) {
-      Server server = new Server( port, THREAD_COUNT );
+      MappedValuesServer server = new MappedValuesServer( port, THREAD_COUNT );
       server.start();
-      server.stop( 1000 );
+      server.waitForShutDown();
     }
     else if( command.equals( "client" ) ) {
       Client client = new Client( host, port );

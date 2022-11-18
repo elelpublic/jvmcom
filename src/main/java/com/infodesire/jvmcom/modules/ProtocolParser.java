@@ -1,4 +1,4 @@
-package com.infodesire.jvmcom;
+package com.infodesire.jvmcom.modules;
 
 /**
  * Parse command send between servers and clients

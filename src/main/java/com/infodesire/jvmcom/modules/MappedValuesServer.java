@@ -1,5 +1,6 @@
-package com.infodesire.jvmcom;
+package com.infodesire.jvmcom.modules;
 
+import com.infodesire.jvmcom.SocketManager;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -19,11 +20,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import static com.infodesire.jvmcom.ProtocolParser.Token;
-import static com.infodesire.jvmcom.ProtocolParser.parseFirstWord;
+import static com.infodesire.jvmcom.modules.ProtocolParser.Token;
+import static com.infodesire.jvmcom.modules.ProtocolParser.parseFirstWord;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-public class Server {
+public class MappedValuesServer {
 
   private int port;
   private int threadCount;
@@ -32,13 +33,13 @@ public class Server {
     0.8f, // load factor
     10 // concurrency level (number of concurrent modifications)
     );
-  private ThreadPooledServerSocket serverSocketManager;
+  private SocketManager serverSocketManager;
 
 
   /**
    * Make threads names easier to read for debugging
    */
-  String serverThreadName, workerThreadName;
+  private String serverThreadName, workerThreadName;
 
   private static Logger logger = LoggerFactory.getLogger( "Server" );
 
@@ -50,7 +51,7 @@ public class Server {
    * @param port Listening port - 0 for random free port
    *
    */
-  public Server( int port, int threadCount ) {
+  public MappedValuesServer( int port, int threadCount ) {
     this.port = port;
     this.threadCount = threadCount;
   }
@@ -68,7 +69,7 @@ public class Server {
 
     serverSocket.close();
 
-    serverSocketManager = new ThreadPooledServerSocket( port, threadCount,
+    serverSocketManager = new SocketManager( port, threadCount,
       new WorkerFactory( workerThreadName ), serverThreadName );
 
   }
@@ -79,6 +80,18 @@ public class Server {
 
   public void stop( long timeoutMs ) throws InterruptedException {
     serverSocketManager.stop( timeoutMs );
+  }
+
+  public void setServerThreadName( String serverThreadName ) {
+    this.serverThreadName = serverThreadName;
+  }
+
+  public void setWorkerThreadName( String workerThreadName ) {
+    this.workerThreadName = workerThreadName;
+  }
+
+  public void waitForShutDown() throws InterruptedException {
+    serverSocketManager.waitForShutDown();
   }
 
 
