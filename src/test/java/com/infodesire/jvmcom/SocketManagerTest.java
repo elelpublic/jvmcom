@@ -34,7 +34,7 @@ public class SocketManagerTest {
 
     String host = "localhost";
 
-    Supplier<Consumer<Socket>> workerFactory = new WorkerFactory();
+    Supplier<ServerWorker> workerFactory = new WorkerFactory();
     SocketManager manager = new SocketManager( 0, 3, workerFactory, "SERVER"  );
     int port = manager.getPort();
 
@@ -57,44 +57,36 @@ public class SocketManagerTest {
   }
 
   @Test
-  public void testLifecycle() throws IOException, InterruptedException {
+  public void testLifecycleWithRestart() throws IOException, InterruptedException {
 
     log = new ArrayList<>();
 
     String host = "localhost";
 
-    Supplier<Consumer<Socket>> workerFactory = new WorkerFactory();
+    Supplier<ServerWorker> workerFactory = new WorkerFactory();
     SocketManager manager = new SocketManager( 0, 3, workerFactory, "SERVER" );
     int port = manager.getPort();
 
-    assertEquals( "welcome", new Client( host, port ).receive() );
+    Client client = new Client( host, port );
+    assertEquals( "welcome", client.receive() );
     manager.stop( 1000 );
-    assertFalse( ping( host, port ) );
+    assertFalse( client.ping() );
 
     manager = new SocketManager( port, 3, workerFactory, "SERVER" );
-    assertEquals( "welcome", new Client( host, port ).receive() );
-    assertTrue( ping( host, port ) );
+    client = new Client( host, port );
+    assertEquals( "welcome", client.receive() );
+    assertTrue( client.ping() );
     manager.stop( 1000 );
-    assertFalse( ping( host, port ) );
+    assertFalse( client.ping() );
 
   }
 
-  private boolean ping( String host, int port ) {
-    try {
-      new Socket( host, port ).close();
-      return true;
-    }
-    catch( IOException ex ) {
-      return false;
-    }
-  }
 
   class Client {
 
     PrintWriter out;
     BufferedReader in;
     Client( String host, int port ) throws IOException {
-
       Socket clientSocket = new Socket( host, port );
       out = new PrintWriter( new OutputStreamWriter( clientSocket.getOutputStream() ) );
       in = new BufferedReader( new InputStreamReader( clientSocket.getInputStream() ) );
@@ -106,16 +98,26 @@ public class SocketManagerTest {
       out.println( line );
       out.flush();
     }
+    public boolean ping() {
+      send( "ping" );
+      try {
+        String reply = receive();
+        return reply != null && reply.equals( "OK" );
+      }
+      catch( IOException ex ) {
+        return false;
+      }
+    }
   }
 
-  class WorkerFactory implements Supplier<Consumer<Socket>> {
-    public Consumer<Socket> get() {
+  class WorkerFactory implements Supplier<ServerWorker> {
+    public ServerWorker get() {
       return new Worker();
     }
   }
 
-  class Worker implements Consumer<Socket> {
-    private boolean stop = false;
+  class Worker implements ServerWorker {
+    private boolean stopRequest = false;
     public void accept( Socket socket ) {
       work( socket );
     }
@@ -128,20 +130,30 @@ public class SocketManagerTest {
         PrintWriter writer = new PrintWriter( new OutputStreamWriter( socket.getOutputStream() ) );
         writer.println( "welcome" );
         writer.flush();
-        while( !stop ) {
-          String line = reader.readLine();
-          if( line == null ) {
-            stop = true; // null means end of stream
+        while( !stopRequest ) {
+          String line = null;
+          try {
+            line = reader.readLine();
+            log( "request:" + line );
           }
-          log( "request:" + line );
+          catch( IOException ex ) {}
+          if( line == null ) {
+            stopRequest = true; // null means end of stream
+          }
           writer.println( "OK" );
           writer.flush();
         }
       }
       catch( IOException ex ) {
-        //ex.printStackTrace();
+        ex.printStackTrace();
       }
     }
+
+    @Override
+    public void requestStop() {
+      stopRequest = true;
+    }
+
   }
 
 

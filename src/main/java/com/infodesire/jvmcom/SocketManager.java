@@ -28,7 +28,7 @@ public class SocketManager {
   private ThreadPoolExecutor pool;
 
 
-  private Set<Worker> workers = new HashSet<>();
+  private Set<WorkerThread> workers = new HashSet<>();
 
 
   /**
@@ -41,7 +41,7 @@ public class SocketManager {
    *
    */
   public SocketManager( int port, int poolSize,
-    Supplier<Consumer<Socket>> workerFactory, String serverThreadName ) throws IOException {
+    Supplier<ServerWorker> workerFactory, String serverThreadName ) throws IOException {
 
     ServerSocket serverSocket = new ServerSocket( port );
 
@@ -49,11 +49,14 @@ public class SocketManager {
 
       protected void afterExecute(Runnable r, Throwable t) {
         // The future returns the Worker object!
-        Worker worker;
+        WorkerThread worker;
         try {
-          worker = (Worker)((FutureTask)r).get();
-          // Remove it from list of known clients
-          workers.remove( worker );
+          worker = (WorkerThread)((FutureTask)r).get();
+          if( worker != null ) {
+            // Remove it from list of known clients
+            worker.requestStop();
+            workers.remove( worker );
+          }
         }
         catch( InterruptedException | ExecutionException ex ) {}
       }
@@ -74,7 +77,7 @@ public class SocketManager {
    *
    */
   public void stop( long timeoutMs ) throws InterruptedException {
-    for( Worker worker : workers ) {
+    for( WorkerThread worker : workers ) {
       worker.stop();
     }
     pool.shutdown();
@@ -102,11 +105,11 @@ public class SocketManager {
   class ServerThread extends Thread {
 
     private final ServerSocket serverSocket;
-    private final Supplier<Consumer<Socket>> workerFactory;
+    private final Supplier<ServerWorker> workerFactory;
     private boolean shutdown = false;
     private final AtomicLong ids = new AtomicLong();
 
-    ServerThread( ThreadPoolExecutor pool, ServerSocket serverSocket, Supplier<Consumer<Socket>> workerFactory ) {
+    ServerThread( ThreadPoolExecutor pool, ServerSocket serverSocket, Supplier<ServerWorker> workerFactory ) {
       this.serverSocket = serverSocket;
       this.workerFactory = workerFactory;
     }
@@ -115,12 +118,14 @@ public class SocketManager {
       while( !shutdown ) {
         try {
           Socket socket = serverSocket.accept();
-          Worker worker = new Worker( ids.incrementAndGet(), socket, workerFactory.get() );
+          WorkerThread worker = new WorkerThread( ids.incrementAndGet(), socket, workerFactory.get() );
           pool.submit( worker );
           workers.add( worker );
         }
         catch( IOException ex ) {
-          ex.printStackTrace();
+          if( !shutdown ) {
+            ex.printStackTrace();
+          }
         }
       }
     }
@@ -148,13 +153,13 @@ public class SocketManager {
   }
 
 
-  class Worker implements Runnable {
+  class WorkerThread implements Runnable {
 
     private final Object id;
     private final Socket socket;
-    private final Consumer<Socket> worker;
+    private final ServerWorker worker;
 
-    Worker( Object id, Socket socket, Consumer<Socket> worker ) {
+    WorkerThread( Object id, Socket socket, ServerWorker worker ) {
       this.id = id;
       this.socket = socket;
       this.worker = worker;
@@ -170,7 +175,7 @@ public class SocketManager {
     }
 
     public boolean equals( Object other ) {
-      return other instanceof Worker && id.equals( ((Worker) other).id );
+      return other instanceof WorkerThread && id.equals( ((WorkerThread) other).id );
     }
 
     public void stop() {
@@ -178,6 +183,10 @@ public class SocketManager {
         socket.close();
       }
       catch( IOException ex ) {}
+    }
+
+    public void requestStop() {
+      worker.requestStop();
     }
 
   }

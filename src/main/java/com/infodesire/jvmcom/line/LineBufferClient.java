@@ -1,4 +1,4 @@
-package com.infodesire.jvmcom;
+package com.infodesire.jvmcom.line;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +9,11 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-public class Client {
+/**
+ * Client to a LineBufferServer, sending one line of text at a time.
+ *
+ */
+public class LineBufferClient {
 
 
   private static Logger logger = LoggerFactory.getLogger( "Client" );
@@ -22,7 +26,7 @@ public class Client {
   private BufferedReader in;
 
 
-  public Client( String host, int port ) {
+  public LineBufferClient( String host, int port ) {
     this.host = host;
     this.port = port;
   }
@@ -96,6 +100,7 @@ public class Client {
   }
 
   private void sendImpl( String line ) {
+    logger.info( "Sending: " + line );
     serverOut.println( line );
     serverOut.flush();
   }

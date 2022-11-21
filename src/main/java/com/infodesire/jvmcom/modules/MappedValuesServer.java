@@ -1,5 +1,6 @@
 package com.infodesire.jvmcom.modules;
 
+import com.infodesire.jvmcom.ServerWorker;
 import com.infodesire.jvmcom.SocketManager;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -17,7 +18,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static com.infodesire.jvmcom.modules.ProtocolParser.Token;
@@ -95,7 +95,7 @@ public class MappedValuesServer {
   }
 
 
-  class WorkerFactory implements Supplier<Consumer<Socket>> {
+  class WorkerFactory implements Supplier<ServerWorker> {
 
     private String threadName;
 
@@ -104,16 +104,17 @@ public class MappedValuesServer {
     }
 
     @Override
-    public Consumer<Socket> get() {
+    public ServerWorker get() {
       return new Worker( threadName );
     }
 
   }
 
-  class Worker implements Consumer<Socket> {
+  class Worker implements ServerWorker {
 
     private final String threadName;
     private PrintWriter writer;
+    private boolean stopRequest = false;
 
     Worker( String threadName ) {
       this.threadName = threadName;
@@ -133,18 +134,23 @@ public class MappedValuesServer {
         out = socket.getOutputStream();
         BufferedReader reader = new BufferedReader( new InputStreamReader( in ) );
         writer = new PrintWriter( new OutputStreamWriter( out ) );
-        send( "Welcome!%n" );
-        while( true ) {
-          String line = reader.readLine();
+        sendReply( "Welcome!%n" );
+        while( !stopRequest ) {
+          String line = null;
+          try {
+            line = reader.readLine();
+            logger.info( "Client request: '" + line + "'" );
+          }
+          catch( IOException ex ) {}
           if( line == null ) {
+            stopRequest = true;
             break; // null means end of stream
           }
-          logger.info( "Client request: '" + line + "'" );
           if( line.equals( "help" ) ) {
             printHelp( writer );
           }
           else if( line.equals( "bye" ) ) {
-            send( "Bye. Closing connection now.%n" );
+            sendReply( "Bye. Closing connection now.%n" );
             socket.close();
             return;
           }
@@ -156,13 +162,13 @@ public class MappedValuesServer {
                 Map<String, String> map = mapAndKey.getLeft();
                 Token valueName = mapAndKey.getRight();
                 if( isEmpty( valueName.restOfLine ) ) {
-                  send( "Error: value must not be null" );
+                  sendReply( "Error: value must not be null" );
                 }
                 else {
                   map.put( valueName.word, valueName.restOfLine );
                 }
               }
-              send( "OK%n" );
+              sendReply( "OK%n" );
             }
             else if( command.word.equals( "get" ) ) {
               Pair<Map<String, String>,Token> mapAndKey = getMapAndKey( command, false );
@@ -170,7 +176,7 @@ public class MappedValuesServer {
                 Map<String, String> map = mapAndKey.getLeft();
                 Token valueName = mapAndKey.getRight();
                 String value = map.get( valueName.word );
-                send( "%s%n", value );
+                sendReply( "%s%n", value );
               }
             }
             else if( command.word.equals( "has" ) ) {
@@ -179,7 +185,7 @@ public class MappedValuesServer {
                 Map<String, String> map = mapAndKey.getLeft();
                 Token valueName = mapAndKey.getRight();
                 boolean result = map.containsKey( valueName.word );
-                send( "%s%n", result );
+                sendReply( "%s%n", result );
               }
             }
             else if( command.word.equals( "remove" ) ) {
@@ -188,33 +194,33 @@ public class MappedValuesServer {
                 Map<String, String> map = mapAndKey.getLeft();
                 Token valueName = mapAndKey.getRight();
                 String value = map.remove( valueName.word );
-                send( "%s%n", value );
+                sendReply( "%s%n", value );
               }
             }
             else if( command.word.equals( "size" ) ) {
               Map<String, String> map = getMap( command );
               if( map == null ) {
-                send( "Error: No map found named %s%n", command.restOfLine );
+                sendReply( "Error: No map found named %s%n", command.restOfLine );
               }
               else {
-                send( "%d%n", map.size() );
+                sendReply( "%d%n", map.size() );
               }
             }
             else if( command.word.equals( "clear" ) ) {
               Map<String, String> map = getMap( command );
               if( map == null ) {
-                send( "Error: No map found named %s%n", command.restOfLine );
+                sendReply( "Error: No map found named %s%n", command.restOfLine );
               }
               else {
                 map.clear();
-                send( "OK%n" );
+                sendReply( "OK%n" );
               }
             }
             else if( command.word.equals( "ping" ) ) {
-              send( "OK%n" );
+              sendReply( "OK%n" );
             }
             else {
-              send( "Error: Unknown command '%s' (try 'help' for a list of commands) %n", line );
+              sendReply( "Error: Unknown command '%s' (try 'help' for a list of commands) %n", line );
             }
           }
         }
@@ -243,7 +249,7 @@ public class MappedValuesServer {
 
       Token mapName = parseFirstWord( command.restOfLine );
       if( isEmpty( mapName.word ) ) {
-        send( "Error: no map name given" );
+        sendReply( "Error: no map name given" );
       }
       else {
         return getMapImpl( mapName.word, false );
@@ -257,17 +263,17 @@ public class MappedValuesServer {
 
       Token mapName = parseFirstWord( command.restOfLine );
       if( isEmpty( mapName.word ) ) {
-        send( "Error: no map name given" );
+        sendReply( "Error: no map name given" );
       }
       else {
         Map<String, String> map = getMapImpl( mapName.word, createIfMissing );
         if( map == null ) {
-          send( "Error: No map found named %s%n", mapName.word );
+          sendReply( "Error: No map found named %s%n", mapName.word );
         }
         else {
           Token valueName = parseFirstWord( mapName.restOfLine );
           if( isEmpty( valueName.word ) ) {
-            send( "Error: no value name given" );
+            sendReply( "Error: no value name given" );
           }
           else {
             return new ImmutablePair<>( map, valueName );
@@ -279,9 +285,9 @@ public class MappedValuesServer {
 
     }
 
-    private void send( String line, Object... parames ) {
+    private void sendReply( String line, Object... parames ) {
       String reply = String.format( line, parames );
-      logger.debug( "Sending: " + reply.trim() );
+      logger.debug( "Sending reply: " + reply.trim() );
       writer.print( reply );
       writer.flush();
     }
@@ -301,6 +307,11 @@ public class MappedValuesServer {
       writer.println( "clear map .............. remove all entries from map" );
       writer.println( "" );
       writer.flush();
+    }
+
+    @Override
+    public void requestStop() {
+      stopRequest = true;
     }
 
   }

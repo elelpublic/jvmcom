@@ -1,5 +1,6 @@
 package com.infodesire.jvmcom;
 
+import com.infodesire.jvmcom.line.LineBufferClient;
 import com.infodesire.jvmcom.modules.MappedValuesServer;
 import org.junit.Test;
 
@@ -28,7 +29,7 @@ public class PerformanceTest {
     server.start();
     int port = server.getPort();
 
-    Client client = new Client( "127.0.0.1", port );
+    LineBufferClient client = new LineBufferClient( "127.0.0.1", port );
     client.connect( false );
 
     reply = client.send( "put main version 1" );
@@ -49,7 +50,7 @@ public class PerformanceTest {
 
     int port = server.getPort();
 
-    Client client = new Client( "127.0.0.1", port );
+    LineBufferClient client = new LineBufferClient( "127.0.0.1", port );
     client.connect( false );
 
     for( int i = 0; i < DATA_SIZE; i++ ) {
@@ -78,7 +79,7 @@ public class PerformanceTest {
   @Test
   public void testStringBuilderVsStringBufferVsString() {
 
-    int COUNT = 10000;
+    int COUNT = 100000;
 
     long t0 = System.currentTimeMillis();
     StringBuilder sbi = new StringBuilder();
@@ -98,6 +99,39 @@ public class PerformanceTest {
     String s = "";
     for( int i = 0; i < COUNT; i++ ) {
       s += i;
+    }
+    System.out.println( "String " + (System.currentTimeMillis() - t0) + " ms" );
+
+    int SUBLENGTH = 100;
+    System.out.println( "With constructors every " + SUBLENGTH + " loops:" );
+
+    t0 = System.currentTimeMillis();
+    StringBuilder sbi2 = new StringBuilder();
+    for( int i = 0; i < COUNT; i++ ) {
+      if( i % SUBLENGTH == 0 ) {
+        sbi2 = new StringBuilder();
+      }
+      sbi2.append( i );
+    }
+    System.out.println( "StringBuilder " + (System.currentTimeMillis() - t0) + " ms" );
+
+    t0 = System.currentTimeMillis();
+    StringBuffer sbu2 = new StringBuffer();
+    for( int i = 0; i < COUNT; i++ ) {
+      if( i % SUBLENGTH == 0 ) {
+        sbu2 = new StringBuffer();
+      }
+      sbu2.append( i );
+    }
+    System.out.println( "StringBuffer " + (System.currentTimeMillis() - t0) + " ms" );
+
+    t0 = System.currentTimeMillis();
+    String s2 = "";
+    for( int i = 0; i < COUNT; i++ ) {
+      if( i % SUBLENGTH == 0 ) {
+        s2 = "";
+      }
+      s2 += i;
     }
     System.out.println( "String " + (System.currentTimeMillis() - t0) + " ms" );
 

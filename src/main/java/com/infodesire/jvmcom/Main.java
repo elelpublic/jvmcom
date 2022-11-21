@@ -1,5 +1,6 @@
 package com.infodesire.jvmcom;
 
+import com.infodesire.jvmcom.line.LineBufferClient;
 import com.infodesire.jvmcom.modules.MappedValuesServer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -65,7 +66,7 @@ public class Main {
       server.waitForShutDown();
     }
     else if( command.equals( "client" ) ) {
-      Client client = new Client( host, port );
+      LineBufferClient client = new LineBufferClient( host, port );
       client.connect( true );
     }
 
