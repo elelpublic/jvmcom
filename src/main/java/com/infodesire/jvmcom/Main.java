@@ -1,7 +1,7 @@
 package com.infodesire.jvmcom;
 
 import com.infodesire.jvmcom.line.LineBufferClient;
-import com.infodesire.jvmcom.modules.MappedValuesServer;
+import com.infodesire.jvmcom.servers.value.ValueServer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -61,7 +61,10 @@ public class Main {
       showUsage( "" );
     }
     else if( command.equals( "server" ) ) {
-      MappedValuesServer server = new MappedValuesServer( port, THREAD_COUNT );
+      ServerConfig config = new ServerConfig();
+      config.port = port;
+      config.threadCount = THREAD_COUNT;
+      ValueServer server = new ValueServer( config );
       server.start();
       server.waitForShutDown();
     }

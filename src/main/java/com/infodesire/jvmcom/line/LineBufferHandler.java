@@ -12,7 +12,7 @@ public interface LineBufferHandler {
    * @return True: continue listening, false: close connection
    *
    */
-  boolean process( String line );
+  HandlerReply process( String line );
 
 
 }

@@ -1,7 +1,6 @@
-package com.infodesire.jvmcom.modules;
+package com.infodesire.jvmcom.servers;
 
 import com.infodesire.jvmcom.line.LineBufferClient;
-import com.infodesire.jvmcom.modules.MappedValuesServer;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -10,19 +9,19 @@ import java.io.IOException;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 
-public class MappedValuesServerTest {
+public class OldValuesServerTest {
 
 
   @BeforeClass
   public static void beforeClass() {
-    System.setProperty( "org.slf4j.simpleLogger.defaultLogLevel", "info" );
+    System.setProperty( "org.slf4j.simpleLogger.defaultLogLevel", "warn" );
   }
 
 
   @Test
   public void testStartupShutdown() throws IOException, InterruptedException {
 
-    MappedValuesServer server = new MappedValuesServer( 0, 3 );
+    OldValuesServer server = new OldValuesServer( 0, 3 );
     server.setServerThreadName( "Server Thread" );
     server.setWorkerThreadName( "Worker Thread" );
     server.start();
@@ -31,7 +30,6 @@ public class MappedValuesServerTest {
 
     LineBufferClient client = new LineBufferClient( "localhost", port );
     client.connect( false );
-    client.send( "help" );
     assertTrue( client.ping() );
 
     server.stop( 100 );

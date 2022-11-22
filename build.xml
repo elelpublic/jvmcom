@@ -50,8 +50,10 @@
         </groovy>
     </target>
 
-    <target name="fetchlibs" depends="tools.install, setup.ivy">
+    <target name="fetchlibs" depends="tools.install, setup.ivy" unless="fetchlibs.done" >
         <ivy:retrieve />
+        <!-- ivy throws some weird exception when called twice in a run -->
+        <property name="fetchlibs.done" value="true" />
     </target>
 
     <target name="compile" depends="fetchlibs">
@@ -180,7 +182,7 @@ java -cp target/classes:lib/* com.infodesire.jvmcom.Main -h ${host} -p ${port} c
         <fail if="failures" ></fail>
     </target>
 
-    <target name="integration" depends="integration.run">
+    <target name="integration" depends="test-quietly, integration.run">
         <groovy>
             import java.awt.Desktop;
             if (Desktop.isDesktopSupported()) {
@@ -243,7 +245,7 @@ java -cp target/classes:lib/* com.infodesire.jvmcom.Main -h ${host} -p ${port} c
 
     </target>
 
-    <target name="integration.run" depends="compile, setup.groovy">
+    <target name="integration.run" depends="compile">
 
         <mkdir dir="target/integration-generated-files" />
         <junit

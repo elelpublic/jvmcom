@@ -1,4 +1,4 @@
-package com.infodesire.jvmcom.modules;
+package com.infodesire.jvmcom.servers;
 
 /**
  * Server which mirrors every request

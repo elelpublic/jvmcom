@@ -1,7 +1,7 @@
 package com.infodesire.jvmcom;
 
 import com.infodesire.jvmcom.line.LineBufferClient;
-import com.infodesire.jvmcom.modules.MappedValuesServer;
+import com.infodesire.jvmcom.servers.value.ValueServer;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -19,12 +19,15 @@ public class PerformanceTest {
 
     StringBuffer reply;
 
-    MappedValuesServer server = new MappedValuesServer( 0, 3 );
+    ServerConfig config = new ServerConfig();
+    config.port = 0;
+    config.threadCount = 3;
+    config.serverThreadNamePattern = "SERVER__";
+    config.workerThreadNamePattern = "WORKER-%d";
+    ValueServer server = new ValueServer( config );
 
     // make threads easier to read for development
     Thread.currentThread().setName( "MAIN____" );
-    server.setServerThreadName( "SERVER__" );
-    server.setWorkerThreadName( "WORKER-%d" );
 
     server.start();
     int port = server.getPort();
@@ -45,7 +48,10 @@ public class PerformanceTest {
   public void testBigData() throws IOException {
 
     System.setProperty( "org.slf4j.simpleLogger.defaultLogLevel", "error" );
-    MappedValuesServer server = new MappedValuesServer( 0, 3 );
+    ServerConfig config = new ServerConfig();
+    config.port = 0;
+    config.threadCount = 3;
+    ValueServer server = new ValueServer( config );
     server.start();
 
     int port = server.getPort();
@@ -79,7 +85,7 @@ public class PerformanceTest {
   @Test
   public void testStringBuilderVsStringBufferVsString() {
 
-    int COUNT = 100000;
+    int COUNT = 10000;
 
     long t0 = System.currentTimeMillis();
     StringBuilder sbi = new StringBuilder();

@@ -1,5 +1,6 @@
 package com.infodesire.jvmcom.line;
 
+import com.infodesire.jvmcom.ServerConfig;
 import com.infodesire.jvmcom.ServerWorker;
 import com.infodesire.jvmcom.SocketManager;
 import org.slf4j.Logger;
@@ -24,15 +25,10 @@ import java.util.function.Supplier;
 public class LineBufferServer {
 
   private final Supplier<LineBufferHandler> handlerFactory;
-  private int port;
-  private int threadCount;
+  private final ServerConfig config;
+  private int localPort = 0;
   private SocketManager serverSocketManager;
 
-
-  /**
-   * Make threads names easier to read for debugging
-   */
-  private String serverThreadName, workerThreadName;
 
   private static Logger logger = LoggerFactory.getLogger( "Server" );
 
@@ -41,14 +37,13 @@ public class LineBufferServer {
    * Create server. To find a random free port, pass 0 as port. You can get the port number AFTER
    * calling start using getPort().
    *
-   * @param port Listening port - 0 for random free port
+   * @param config Server settings and network configuration
    *
    */
-  public LineBufferServer( int port, int threadCount, 
+  public LineBufferServer( ServerConfig config,
                            Supplier<LineBufferHandler> handlerFactory ) {
     
-    this.port = port;
-    this.threadCount = threadCount;
+    this.config = config;
     this.handlerFactory = handlerFactory;
     
   }
@@ -56,35 +51,34 @@ public class LineBufferServer {
 
   public void start() throws IOException {
 
-    logger.info( "Trying to start server on port " + port );
+    localPort = localPort == 0 ? config.port : localPort;
+    logger.info( "Trying to start server on port " + localPort );
 
-    ServerSocket serverSocket = new ServerSocket( port );
-    if( port == 0 ) {
-      port = serverSocket.getLocalPort();
-      logger.info( "Free port found " + port );
+    ServerSocket serverSocket = new ServerSocket( localPort );
+    if( localPort == 0 ) {
+      localPort = serverSocket.getLocalPort();
+      logger.info( "Free port found " + localPort );
     }
 
     serverSocket.close();
 
-    serverSocketManager = new SocketManager( port, threadCount,
-      new WorkerFactory( workerThreadName, handlerFactory ), serverThreadName );
+    serverSocketManager = new SocketManager( localPort, config.threadCount,
+      new WorkerFactory( config.workerThreadNamePattern, handlerFactory ), config.serverThreadNamePattern );
+
+    logger.info( "Server started on port " + localPort + ". Waiting for requests." );
 
   }
 
+  /**
+   * @return Port on which server is listening. If 0 was configured, this will be the real local port found.
+   *
+   */
   public int getPort() {
-    return port;
+    return localPort;
   }
 
   public void stop( long timeoutMs ) throws InterruptedException {
     serverSocketManager.stop( timeoutMs );
-  }
-
-  public void setServerThreadName( String serverThreadName ) {
-    this.serverThreadName = serverThreadName;
-  }
-
-  public void setWorkerThreadName( String workerThreadName ) {
-    this.workerThreadName = workerThreadName;
   }
 
   public void waitForShutDown() throws InterruptedException {
@@ -136,14 +130,21 @@ public class LineBufferServer {
         out = socket.getOutputStream();
         BufferedReader reader = new BufferedReader( new InputStreamReader( in ) );
         writer = new PrintWriter( new OutputStreamWriter( out ) );
-        send( "Welcome!%n" );
+        send( "welcome" );
         while( !stopRequest ) {
-          String line = reader.readLine();
+          String line = null;
+          try {
+            line = reader.readLine();
+            logger.info( "Client request: '" + line + "'" );
+            HandlerReply reply = handler.process( line );
+            send( reply.replyText );
+            stopRequest = !reply.continueProcessing;
+          }
+          catch( IOException ex ) {}
           if( line == null ) {
+            stopRequest = true;
             break; // null means end of stream
           }
-          logger.info( "Client request: '" + line + "'" );
-          stopRequest = !handler.process( line );
         }
       }
       catch( IOException ex ) {
@@ -168,11 +169,9 @@ public class LineBufferServer {
       logger.info( "Connection closed." );
     }
 
-    private void send( String line, Object... parames ) {
-
-      String reply = String.format( line, parames );
-      logger.debug( "Sending: " + reply.trim() );
-      writer.print( reply );
+    private void send( String line ) {
+      logger.debug( "Sending: " + line );
+      writer.println( line );
       writer.flush();
     }
 

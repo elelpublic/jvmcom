@@ -1,6 +1,6 @@
 package com.infodesire.jvmcom;
 
-import com.infodesire.jvmcom.modules.MappedValuesServer;
+import com.infodesire.jvmcom.servers.value.ValueServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +18,7 @@ public class WebAppServer {
 
   private static boolean isClientConnected = false;
   private static int port;
-  private static MappedValuesServer server;
+  private static ValueServer server;
   private static final int THREAD_COUNT = Integer.parseInt( System.getProperty( "com.infodesire.jvmcom.threadCount", "10" ) );
   private static String host;
   private static int serverPort;
@@ -34,9 +34,10 @@ public class WebAppServer {
   public static void startServer() {
     if( !isServerRunning() ) {
       try {
-        server = new MappedValuesServer( port, THREAD_COUNT );
-        server.setServerThreadName( "SERVER" );
-        server.setWorkerThreadName( "WORKER" );
+        ServerConfig config = new ServerConfig();
+        config.port = 0;
+        config.threadCount = THREAD_COUNT;
+        server = new ValueServer( config );
         server.start();
       }
       catch( IOException ex ) {

@@ -1,11 +1,11 @@
-package com.infodesire.jvmcom.modules;
+package com.infodesire.jvmcom.servers;
 
 /**
  * Parse command send between servers and clients
  */
-class ProtocolParser {
+public class ProtocolParser {
 
-  static Token parseFirstWord( String line ) {
+  public static Token parseFirstWord( String line ) {
     StringBuilder word = new StringBuilder( 10 );
     String restOfLine = null;
     boolean inWord = false;
@@ -25,10 +25,10 @@ class ProtocolParser {
     return new Token( word.toString(), restOfLine );
   }
 
-  static class Token {
+  public static class Token {
 
-    final String word;
-    final String restOfLine;
+    public final String word;
+    public final String restOfLine;
 
     Token( String word, String restOfLine ) {
       this.word = word;

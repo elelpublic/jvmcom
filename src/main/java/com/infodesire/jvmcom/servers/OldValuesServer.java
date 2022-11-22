@@ -1,4 +1,4 @@
-package com.infodesire.jvmcom.modules;
+package com.infodesire.jvmcom.servers;
 
 import com.infodesire.jvmcom.ServerWorker;
 import com.infodesire.jvmcom.SocketManager;
@@ -20,11 +20,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-import static com.infodesire.jvmcom.modules.ProtocolParser.Token;
-import static com.infodesire.jvmcom.modules.ProtocolParser.parseFirstWord;
+import static com.infodesire.jvmcom.servers.ProtocolParser.Token;
+import static com.infodesire.jvmcom.servers.ProtocolParser.parseFirstWord;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-public class MappedValuesServer {
+public class OldValuesServer {
 
   private int port;
   private int threadCount;
@@ -51,7 +51,7 @@ public class MappedValuesServer {
    * @param port Listening port - 0 for random free port
    *
    */
-  public MappedValuesServer( int port, int threadCount ) {
+  public OldValuesServer( int port, int threadCount ) {
     this.port = port;
     this.threadCount = threadCount;
   }

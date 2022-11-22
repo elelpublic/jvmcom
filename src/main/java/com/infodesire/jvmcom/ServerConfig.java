@@ -16,8 +16,15 @@ public class ServerConfig {
   public int threadCount = 10;
 
   /**
-   * Optional name pattern for threads. Can contain %d
+   * Make threads names easier to read for debugging:
+   * Optional name pattern for the server thread. Can contain %d
    */
-  public String threadNamePattern;
+  public String serverThreadNamePattern;
+
+  /**
+   * Make threads names easier to read for debugging:
+   * Optional name pattern for workers. Can contain %d
+   */
+  public String workerThreadNamePattern;
 
 }
