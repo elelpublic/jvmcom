@@ -1,4 +1,4 @@
-package com.infodesire.jvmcom.servers;
+package com.infodesire.jvmcom.services;
 
 /**
  * A central server for system properties

@@ -1,6 +1,6 @@
 package com.infodesire.jvmcom;
 
-import com.infodesire.jvmcom.servers.value.ValueServer;
+import com.infodesire.jvmcom.services.value.ValueServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,7 @@ public class WebAppServer {
     if( !isServerRunning() ) {
       try {
         ServerConfig config = new ServerConfig();
-        config.port = 0;
+        config.port = port;
         config.threadCount = THREAD_COUNT;
         server = new ValueServer( config );
         server.start();

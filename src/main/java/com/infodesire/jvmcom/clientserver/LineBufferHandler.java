@@ -1,4 +1,4 @@
-package com.infodesire.jvmcom.line;
+package com.infodesire.jvmcom.clientserver;
 
 /**
  * Worker processing lines of text received on a socket

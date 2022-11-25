@@ -1,6 +1,6 @@
-package com.infodesire.jvmcom.servers.value;
+package com.infodesire.jvmcom.services.value;
 
-import com.infodesire.jvmcom.line.LineBufferClient;
+import com.infodesire.jvmcom.clientserver.LineBufferClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

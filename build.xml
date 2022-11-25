@@ -9,6 +9,7 @@
         <path id="thirdparty.jars">
             <pathelement location="lib/commons-lang3-${commons-lang3.version}.jar" />
             <pathelement location="lib/commons-cli-${commons-cli.version}.jar" />
+            <pathelement location="lib/pcollections-${pcollections.version}.jar" />
             <pathelement location="lib/slf4j-api-${slf4j.version}.jar" />
             <pathelement location="lib/slf4j-simple-${slf4j.version}.jar" />
             <pathelement location="lib/javax.servlet-api-${javax.servlet-api.version}.jar" />
@@ -17,6 +18,7 @@
         <fileset dir="lib" id="thirdparty.jarfiles">
             <include name="commons-lang3-${commons-lang3.version}.jar" />
             <include name="commons-cli-${commons-cli.version}.jar" />
+            <include name="pcollections-${pcollections.version}.jar" />
             <include name="slf4j-api-${slf4j.version}.jar" />
             <include name="slf4j-simple-${slf4j.version}.jar" />
         </fileset>
@@ -51,7 +53,7 @@
     </target>
 
     <target name="fetchlibs" depends="tools.install, setup.ivy" unless="fetchlibs.done" >
-        <ivy:retrieve />
+        <ivy:retrieve log="quiet" />
         <!-- ivy throws some weird exception when called twice in a run -->
         <property name="fetchlibs.done" value="true" />
     </target>
@@ -114,9 +116,9 @@
     <target name="war" depends="jar">
         <war
             destfile="target/jvmcom.war"
-            basedir="src/main/web"
-            excludes="src/main/web/WEB-INF/web.xml"
-            webxml="src/main/web/WEB-INF/web.xml"
+            basedir="src/main/web/webapp"
+            excludes="src/main/web/webapp/WEB-INF/web.xml"
+            webxml="src/main/web/webapp/WEB-INF/web.xml"
             >
             <lib dir="target">
                 <include name="jvmcom-${jvmcom.version}.jar" />
@@ -311,7 +313,17 @@ java -cp target/classes:lib/* com.infodesire.jvmcom.Main -h ${host} -p ${port} c
         <copy
             file="target/jvmcom.war"
             todir="target/apache-tomcat-9.0.68/webapps"
-        />
+            />
+
+        <mkdir
+            dir="target/apache-tomcat-9.0.68/conf/Catalina/localhost/" />
+
+        <copy
+            todir="target/apache-tomcat-9.0.68/conf/Catalina/localhost/" >
+            <fileset dir="src/main/web/context">
+                <include name="**/*" />
+            </fileset>
+        </copy>
 
     </target>
 

@@ -1,7 +1,7 @@
 package com.infodesire.jvmcom;
 
-import com.infodesire.jvmcom.line.LineBufferClient;
-import com.infodesire.jvmcom.servers.value.ValueServer;
+import com.infodesire.jvmcom.clientserver.LineBufferClient;
+import com.infodesire.jvmcom.services.value.ValueServer;
 import org.junit.Test;
 
 import java.io.IOException;

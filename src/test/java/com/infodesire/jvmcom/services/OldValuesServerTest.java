@@ -1,6 +1,6 @@
-package com.infodesire.jvmcom.servers;
+package com.infodesire.jvmcom.services;
 
-import com.infodesire.jvmcom.line.LineBufferClient;
+import com.infodesire.jvmcom.clientserver.LineBufferClient;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

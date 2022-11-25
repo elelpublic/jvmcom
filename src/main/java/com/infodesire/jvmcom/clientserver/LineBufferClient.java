@@ -1,4 +1,4 @@
-package com.infodesire.jvmcom.line;
+package com.infodesire.jvmcom.clientserver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +24,7 @@ public class LineBufferClient {
   private PrintWriter serverOut;
   private Socket socket;
   private BufferedReader in;
+  private long createdTime = System.currentTimeMillis();
 
 
   public LineBufferClient( String host, int port ) {
@@ -120,6 +121,14 @@ public class LineBufferClient {
     String reply = send( "ping" ).toString();
     logger.info( "Ping reply: " + reply );
     return reply.equals( "OK" );
+  }
+
+  public boolean isConnected() {
+    return in != null;
+  }
+
+  public long getCreatedTime() {
+    return createdTime;
   }
 
 }

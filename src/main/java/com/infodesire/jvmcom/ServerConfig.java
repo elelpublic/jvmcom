@@ -27,4 +27,18 @@ public class ServerConfig {
    */
   public String workerThreadNamePattern;
 
+  /**
+   * Max lifetime in ms for a client connection to be kept open before auto closing.
+   *
+   * Default: 3600000 ms = 1h
+   */
+  public long maxClientLifetimeMs = 60 * 60 * 1000;
+
+  public ServerConfig() {}
+
+  public ServerConfig( int port ) {
+    this.port = port;
+  }
+
+
 }

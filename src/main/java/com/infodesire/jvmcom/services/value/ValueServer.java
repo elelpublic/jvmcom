@@ -1,10 +1,10 @@
-package com.infodesire.jvmcom.servers.value;
+package com.infodesire.jvmcom.services.value;
 
 import com.infodesire.jvmcom.ServerConfig;
 import com.infodesire.jvmcom.SocketManager;
-import com.infodesire.jvmcom.line.HandlerReply;
-import com.infodesire.jvmcom.line.LineBufferHandler;
-import com.infodesire.jvmcom.line.LineBufferServer;
+import com.infodesire.jvmcom.clientserver.HandlerReply;
+import com.infodesire.jvmcom.clientserver.LineBufferHandler;
+import com.infodesire.jvmcom.clientserver.LineBufferServer;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Pair;
@@ -18,8 +18,8 @@ import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-import static com.infodesire.jvmcom.servers.ProtocolParser.Token;
-import static com.infodesire.jvmcom.servers.ProtocolParser.parseFirstWord;
+import static com.infodesire.jvmcom.services.ProtocolParser.Token;
+import static com.infodesire.jvmcom.services.ProtocolParser.parseFirstWord;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public class ValueServer {

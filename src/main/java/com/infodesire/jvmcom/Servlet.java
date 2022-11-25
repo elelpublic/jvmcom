@@ -3,11 +3,14 @@ package com.infodesire.jvmcom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
+import java.util.Enumeration;
 
 public class Servlet extends HttpServlet {
 
@@ -27,6 +30,25 @@ public class Servlet extends HttpServlet {
     PrintWriter out = response.getWriter();
     out.println("<h1>Hello World</h1>");
     out.println("Sent from servlet");
+
+    ServletContext context = getServletContext();
+
+    out.println( "<h1>" + context.getContextPath() + "</h1>");
+
+    out.println( "<h2>Attributes</h2>" );
+
+    for( Enumeration<String> i = context.getAttributeNames(); i.hasMoreElements(); ) {
+      String name = i.nextElement();
+      out.println( "<b>" + name + "</b>: " + context.getAttribute( name ) + "<br>" );
+    }
+
+    out.println( "<h2>Init Parameters</h2>" );
+
+    for( Enumeration<String> i = context.getInitParameterNames(); i.hasMoreElements(); ) {
+      String name = i.nextElement();
+      out.println( "<b>" + name + "</b>: " + context.getInitParameter( name ) + "<br>" );
+    }
+
   }
 
   public void doPost( HttpServletRequest request, HttpServletResponse response)

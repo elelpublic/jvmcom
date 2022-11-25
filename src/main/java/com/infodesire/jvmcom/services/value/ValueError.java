@@ -1,4 +1,4 @@
-package com.infodesire.jvmcom.servers.value;
+package com.infodesire.jvmcom.services.value;
 
 public enum ValueError {
 

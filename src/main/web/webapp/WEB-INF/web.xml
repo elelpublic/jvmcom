@@ -7,6 +7,10 @@
     <servlet>
         <servlet-name>jvmcom</servlet-name>
         <servlet-class>com.infodesire.jvmcom.Servlet</servlet-class>
+        <init-param>
+            <param-name>myParam</param-name>
+            <param-value>abcd</param-value>
+        </init-param>
     </servlet>
 
     <servlet-mapping>

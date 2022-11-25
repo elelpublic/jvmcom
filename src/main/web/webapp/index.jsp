@@ -5,6 +5,34 @@
 	</head>
 	<body>
 
+	    <a href=servlet>Go to servlet</a>
+
+	    <p>
+
+            <%@ page import="java.util.Enumeration" %>
+
+            <%
+                ServletContext context = getServletContext();
+
+                out.println( "<h1>" + context.getContextPath() + "</h1>");
+
+                out.println( "<h2>Attributes</h2>" );
+
+                for( Enumeration<String> i = context.getAttributeNames(); i.hasMoreElements(); ) {
+                  String name = i.nextElement();
+                  out.println( "<b>" + name + "</b>: " + context.getAttribute( name ) + "<br>" );
+                }
+
+                out.println( "<h2>Init Parameters</h2>" );
+
+                for( Enumeration<String> i = context.getInitParameterNames(); i.hasMoreElements(); ) {
+                  String name = i.nextElement();
+                  out.println( "<b>" + name + "</b>: " + context.getInitParameter( name ) + "<br>" );
+                }
+            %>
+
+	    </p>
+
 	    <%@ page import="com.infodesire.jvmcom.WebAppServer" %>
 
 		<h1>jvmcom</h1>

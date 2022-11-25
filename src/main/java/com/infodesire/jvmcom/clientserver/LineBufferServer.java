@@ -1,4 +1,4 @@
-package com.infodesire.jvmcom.line;
+package com.infodesire.jvmcom.clientserver;
 
 import com.infodesire.jvmcom.ServerConfig;
 import com.infodesire.jvmcom.ServerWorker;

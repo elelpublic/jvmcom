@@ -1,4 +1,4 @@
-package com.infodesire.jvmcom.servers;
+package com.infodesire.jvmcom.services;
 
 import org.junit.Test;
 

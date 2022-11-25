@@ -1,4 +1,4 @@
-package com.infodesire.jvmcom.servers;
+package com.infodesire.jvmcom.services;
 
 import com.infodesire.jvmcom.ServerWorker;
 import com.infodesire.jvmcom.SocketManager;
@@ -20,8 +20,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-import static com.infodesire.jvmcom.servers.ProtocolParser.Token;
-import static com.infodesire.jvmcom.servers.ProtocolParser.parseFirstWord;
+import static com.infodesire.jvmcom.services.ProtocolParser.Token;
+import static com.infodesire.jvmcom.services.ProtocolParser.parseFirstWord;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public class OldValuesServer {
