@@ -10,6 +10,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 
 import static org.junit.Assert.*;
@@ -29,13 +31,15 @@ public class NodeTest {
   @Test
   public void testPing() throws IOException {
 
+    Iterator<Integer> freePorts = SocketUtils.getFreePorts( 3 ).iterator();
+
     File tempFile = File.createTempFile( "testPing-", ".mesh" );
     PrintWriter out = new PrintWriter( tempFile );
     out.println( "name=world" );
     out.println( "nodes=node1,node2,node3" );
-    out.println( "nodes.node1.port=" + SocketUtils.getFreePort() );
-    out.println( "nodes.node2.port=" + SocketUtils.getFreePort() );
-    out.println( "nodes.node3.port=" + SocketUtils.getFreePort() );
+    out.println( "nodes.node1.port=" + freePorts.next() );
+    out.println( "nodes.node2.port=" + freePorts.next() );
+    out.println( "nodes.node3.port=" + freePorts.next() );
     out.close();
 
     System.out.println( tempFile );

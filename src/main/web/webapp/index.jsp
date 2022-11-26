@@ -16,12 +16,14 @@
 
                 out.println( "<h1>" + context.getContextPath() + "</h1>");
 
+                /*
                 out.println( "<h2>Attributes</h2>" );
 
                 for( Enumeration<String> i = context.getAttributeNames(); i.hasMoreElements(); ) {
                   String name = i.nextElement();
                   out.println( "<b>" + name + "</b>: " + context.getAttribute( name ) + "<br>" );
                 }
+                */
 
                 out.println( "<h2>Init Parameters</h2>" );
 

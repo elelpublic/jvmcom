@@ -1,31 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project default="usage" xmlns:ivy="antlib:org.apache.ivy.ant">
+<project
+        default="usage"
+        xmlns:ivy="antlib:org.apache.ivy.ant"
+        >
 
     <target name="properties">
 
-        <property file="project.properties" />
+        <property file="project.properties"/>
 
         <path id="thirdparty.jars">
-            <pathelement location="lib/commons-lang3-${commons-lang3.version}.jar" />
-            <pathelement location="lib/commons-cli-${commons-cli.version}.jar" />
-            <pathelement location="lib/pcollections-${pcollections.version}.jar" />
-            <pathelement location="lib/slf4j-api-${slf4j.version}.jar" />
-            <pathelement location="lib/slf4j-simple-${slf4j.version}.jar" />
-            <pathelement location="lib/javax.servlet-api-${javax.servlet-api.version}.jar" />
+            <pathelement location="lib/commons-lang3-${commons-lang3.version}.jar"/>
+            <pathelement location="lib/commons-cli-${commons-cli.version}.jar"/>
+            <pathelement location="lib/pcollections-${pcollections.version}.jar"/>
+            <pathelement location="lib/slf4j-api-${slf4j.version}.jar"/>
+            <pathelement location="lib/slf4j-simple-${slf4j.version}.jar"/>
+            <pathelement location="lib/javax.servlet-api-${javax.servlet-api.version}.jar"/>
         </path>
 
         <fileset dir="lib" id="thirdparty.jarfiles">
-            <include name="commons-lang3-${commons-lang3.version}.jar" />
-            <include name="commons-cli-${commons-cli.version}.jar" />
-            <include name="pcollections-${pcollections.version}.jar" />
-            <include name="slf4j-api-${slf4j.version}.jar" />
-            <include name="slf4j-simple-${slf4j.version}.jar" />
+            <include name="commons-lang3-${commons-lang3.version}.jar"/>
+            <include name="commons-cli-${commons-cli.version}.jar"/>
+            <include name="pcollections-${pcollections.version}.jar"/>
+            <include name="slf4j-api-${slf4j.version}.jar"/>
+            <include name="slf4j-simple-${slf4j.version}.jar"/>
         </fileset>
 
     </target>
 
-    <target name="setup.ivy" depends="properties" >
+    <target name="setup.ivy" depends="properties">
 
         <!-- ivy (dependency manager) -->
         <!-- to (re)install ivy: cd ivy; ./install-ivy.sh -->
@@ -52,94 +55,94 @@
         </groovy>
     </target>
 
-    <target name="fetchlibs" depends="tools.install, setup.ivy" unless="fetchlibs.done" >
-        <ivy:retrieve log="quiet" />
+    <target name="fetchlibs" depends="tools.install, setup.ivy" unless="fetchlibs.done">
+        <ivy:retrieve log="quiet"/>
         <!-- ivy throws some weird exception when called twice in a run -->
-        <property name="fetchlibs.done" value="true" />
+        <property name="fetchlibs.done" value="true"/>
     </target>
 
     <target name="compile" depends="fetchlibs">
 
-        <mkdir dir="target/classes" />
+        <mkdir dir="target/classes"/>
         <javac
-            srcdir="src/main/java"
-            destdir="target/classes"
-            debug="true"
-            >
-            <src path="src/main/java" />
-            <classpath refid="thirdparty.jars" />
+                srcdir="src/main/java"
+                destdir="target/classes"
+                debug="true"
+        >
+            <src path="src/main/java"/>
+            <classpath refid="thirdparty.jars"/>
         </javac>
-        <mkdir dir="target/test-classes" />
+        <mkdir dir="target/test-classes"/>
         <javac
-            srcdir="src/test/java"
-            destdir="target/test-classes"
-            debug="true"
-            >
-            <src path="src/test/java" />
-            <classpath refid="thirdparty.jars" />
+                srcdir="src/test/java"
+                destdir="target/test-classes"
+                debug="true"
+        >
+            <src path="src/test/java"/>
+            <classpath refid="thirdparty.jars"/>
             <classpath>
-                <pathelement path="target/classes" />
+                <pathelement path="target/classes"/>
             </classpath>
         </javac>
-        <mkdir dir="target/integration-classes" />
+        <mkdir dir="target/integration-classes"/>
         <javac
-            srcdir="src/integration/java"
-            destdir="target/integration-classes"
-            debug="true"
-            >
-            <src path="src/integration/java" />
-            <classpath refid="thirdparty.jars" />
+                srcdir="src/integration/java"
+                destdir="target/integration-classes"
+                debug="true"
+        >
+            <src path="src/integration/java"/>
+            <classpath refid="thirdparty.jars"/>
             <classpath>
-                <pathelement path="target/classes" />
+                <pathelement path="target/classes"/>
             </classpath>
         </javac>
     </target>
 
     <target name="jar" depends="compile">
         <tstamp>
-            <format property="touch.time" pattern="dd.MM.yyyy HH:mm:ss" />
+            <format property="touch.time" pattern="dd.MM.yyyy HH:mm:ss"/>
         </tstamp>
 
         <jar
-            jarfile="target/jvmcom-${jvmcom.version}.jar"
-            basedir="target/classes"
-            >
+                jarfile="target/jvmcom-${jvmcom.version}.jar"
+                basedir="target/classes"
+        >
             <manifest>
-                <attribute name="Create-Timestamp" value="${touch.time}" />
-                <attribute name="Main-Class" value="com.infodesire.jvmcom.Main" />
+                <attribute name="Create-Timestamp" value="${touch.time}"/>
+                <attribute name="Main-Class" value="com.infodesire.jvmcom.Main"/>
                 <attribute name="Class-Path"
-                           value="commons-cli-${commons-cli.version}.jar commons-lang3-${commons-lang3.version}.jar slf4j-api-${slf4j.version}.jar slf4j-simple-${slf4j.version}.jar" />
+                           value="commons-cli-${commons-cli.version}.jar commons-lang3-${commons-lang3.version}.jar slf4j-api-${slf4j.version}.jar slf4j-simple-${slf4j.version}.jar"/>
             </manifest>
         </jar>
     </target>
 
     <target name="war" depends="jar">
         <war
-            destfile="target/jvmcom.war"
-            basedir="src/main/web/webapp"
-            excludes="src/main/web/webapp/WEB-INF/web.xml"
-            webxml="src/main/web/webapp/WEB-INF/web.xml"
-            >
+                destfile="target/jvmcom.war"
+                basedir="src/main/web/webapp"
+                excludes="src/main/web/webapp/WEB-INF/web.xml"
+                webxml="src/main/web/webapp/WEB-INF/web.xml"
+        >
             <lib dir="target">
-                <include name="jvmcom-${jvmcom.version}.jar" />
+                <include name="jvmcom-${jvmcom.version}.jar"/>
             </lib>
-            <lib refid="thirdparty.jarfiles" />
+            <lib refid="thirdparty.jarfiles"/>
         </war>
     </target>
 
     <target name="hostport">
-        <property name="host" value="localhost" />
-        <property name="port" value="44000" />
+        <property name="host" value="localhost"/>
+        <property name="port" value="44000"/>
     </target>
 
     <target name="server">
-        <property name="command" value="server" />
-        <antcall target="main" />
+        <property name="command" value="server"/>
+        <antcall target="main"/>
     </target>
 
     <target name="client" depends="test-quietly, hostport">
-        <echo file="target/client.sh" >#!/bin/sh
-java -cp target/classes:lib/* com.infodesire.jvmcom.Main -h ${host} -p ${port} client
+        <echo file="target/client.sh">#!/bin/sh
+            java -cp target/classes:lib/* com.infodesire.jvmcom.Main -h ${host} -p ${port} client
         </echo>
         <exec command="chmod +x target/client.sh"></exec>
         <echo>Call target/client.sh</echo>
@@ -147,17 +150,17 @@ java -cp target/classes:lib/* com.infodesire.jvmcom.Main -h ${host} -p ${port} c
 
     <target name="main" depends="test-quietly, hostport">
         <java
-            classpath="target/classes"
-            classname="com.infodesire.jvmcom.Main"
-            >
-            <arg line="-h ${host} -p ${port} ${command}" />
-            <classpath refid="thirdparty.jars" />
+                classpath="target/classes"
+                classname="com.infodesire.jvmcom.Main"
+        >
+            <arg line="-h ${host} -p ${port} ${command}"/>
+            <classpath refid="thirdparty.jars"/>
         </java>
     </target>
 
     <target name="tools.install" depends="properties">
 
-        <mkdir dir="tools/ivy" />
+        <mkdir dir="tools/ivy"/>
         <get
                 src="https://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.version}/ivy-${ivy.version}.jar"
                 dest="tools/ivy"
@@ -181,7 +184,7 @@ java -cp target/classes:lib/* com.infodesire.jvmcom.Main -h ${host} -p ${port} c
             }
             }
         </groovy>
-        <fail if="failures" ></fail>
+        <fail if="failures"></fail>
     </target>
 
     <target name="integration" depends="test-quietly, integration.run">
@@ -198,17 +201,17 @@ java -cp target/classes:lib/* com.infodesire.jvmcom.Main -h ${host} -p ${port} c
             }
             }
         </groovy>
-        <fail if="failures" ></fail>
+        <fail if="failures"></fail>
     </target>
 
     <target name="test-quietly" depends="test.run">
-        <fail if="failures" ></fail>
+        <fail if="failures"></fail>
     </target>
 
 
     <target name="test.run" depends="compile, setup.groovy">
 
-        <mkdir dir="target/test-generated-files" />
+        <mkdir dir="target/test-generated-files"/>
         <junit
                 fork="true"
                 printsummary="on"
@@ -216,28 +219,28 @@ java -cp target/classes:lib/* com.infodesire.jvmcom.Main -h ${host} -p ${port} c
             <!-- fork:true is necessary, because some tests use ant themselves -->
 
             <classpath>
-                <fileset dir="lib" />
-                <pathelement location="target/classes" />
-                <pathelement location="target/test-classes" />
+                <fileset dir="lib"/>
+                <pathelement location="target/classes"/>
+                <pathelement location="target/test-classes"/>
             </classpath>
 
             <batchtest
-                failureproperty="failures"
-                errorproperty="failures"
-                todir="target/test-generated-files"
-                >
+                    failureproperty="failures"
+                    errorproperty="failures"
+                    todir="target/test-generated-files"
+            >
 
-                <fileset dir="target/test-classes" >
-                    <include name="**/*Test.class" />
+                <fileset dir="target/test-classes">
+                    <include name="**/*Test.class"/>
                 </fileset>
 
             </batchtest>
 
-            <formatter type="xml" />
+            <formatter type="xml"/>
 
         </junit>
 
-        <mkdir dir="target/test-report" />
+        <mkdir dir="target/test-report"/>
         <junitreport todir="target/test-report">
             <fileset dir="target/test-generated-files">
                 <include name="TEST-*.xml"/>
@@ -249,36 +252,36 @@ java -cp target/classes:lib/* com.infodesire.jvmcom.Main -h ${host} -p ${port} c
 
     <target name="integration.run" depends="compile">
 
-        <mkdir dir="target/integration-generated-files" />
+        <mkdir dir="target/integration-generated-files"/>
         <junit
-            fork="true"
-            printsummary="on"
-            >
+                fork="true"
+                printsummary="on"
+        >
             <!-- fork:true is necessary, because some tests use ant themselves -->
 
             <classpath>
-                <fileset dir="lib" />
-                <pathelement location="target/classes" />
-                <pathelement location="target/integration-classes" />
+                <fileset dir="lib"/>
+                <pathelement location="target/classes"/>
+                <pathelement location="target/integration-classes"/>
             </classpath>
 
             <batchtest
-                failureproperty="failures"
-                errorproperty="failures"
-                todir="target/integration-generated-files"
-                >
+                    failureproperty="failures"
+                    errorproperty="failures"
+                    todir="target/integration-generated-files"
+            >
 
-                <fileset dir="target/integration-classes" >
-                    <include name="**/*Test.class" />
+                <fileset dir="target/integration-classes">
+                    <include name="**/*Test.class"/>
                 </fileset>
 
             </batchtest>
 
-            <formatter type="xml" />
+            <formatter type="xml"/>
 
         </junit>
 
-        <mkdir dir="target/integration-report" />
+        <mkdir dir="target/integration-report"/>
         <junitreport todir="target/integration-report">
             <fileset dir="target/integration-generated-files">
                 <include name="TEST-*.xml"/>
@@ -289,84 +292,122 @@ java -cp target/classes:lib/* com.infodesire.jvmcom.Main -h ${host} -p ${port} c
     </target>
 
     <target name="clean">
-        <delete dir="target" />
+        <delete dir="target"/>
     </target>
 
     <target name="clean.all" depends="clean">
-        <delete dir="lib" />
-        <delete dir="tools" />
+        <delete dir="lib"/>
+        <delete dir="tools"/>
     </target>
 
-    <target name="web.build" depends="war, setup.groovy" >
+    <target name="web.build" depends="nodeIndex, war, setup.groovy">
 
+        <mkdir dir="${dir}"/>
         <unzip
-            src="lib/tomcat-${tomcat.version}.zip"
-            dest="target"
-            />
+                src="lib/tomcat-${tomcat.version}.zip"
+                dest="${dir}"
+        >
+            <cutdirsmapper dirs="1"/>
+        </unzip>
+
+        <replace
+                file="${dir}/conf/server.xml"
+                token="8080"
+                value="${http}"/>
+
+        <replace
+                file="${dir}/conf/server.xml"
+                token="8005"
+                value="${admin}"/>
+
+        <replace
+                file="${dir}/conf/server.xml"
+                token="8009"
+                value="${ajp}"/>
 
         <chmod perm="+x">
-            <fileset dir="target/apache-tomcat-9.0.68/bin/" >
-                <include name="*" />
+            <fileset dir="${dir}/bin/">
+                <include name="*"/>
             </fileset>
         </chmod>
 
         <copy
-            file="target/jvmcom.war"
-            todir="target/apache-tomcat-9.0.68/webapps"
-            />
+                file="target/jvmcom.war"
+                todir="${dir}/webapps"
+        />
 
         <mkdir
-            dir="target/apache-tomcat-9.0.68/conf/Catalina/localhost/" />
+                dir="${dir}/conf/Catalina/localhost/"/>
 
         <copy
-            todir="target/apache-tomcat-9.0.68/conf/Catalina/localhost/" >
+                todir="${dir}/conf/Catalina/localhost/">
             <fileset dir="src/main/web/context">
-                <include name="**/*" />
+                <include name="**/*"/>
             </fileset>
         </copy>
 
     </target>
 
-    <target name="web.start" depends="web.build" >
-        <exec command="target/apache-tomcat-9.0.68/bin/catalina.sh start" />
+    <target name="web.start" depends="nodeIndex, web.build">
+        <exec command="${dir}/bin/catalina.sh start"/>
         <groovy>
+            <arg line="${http}"/>
             import java.awt.Desktop;
             import java.net.URI;
             if (Desktop.isDesktopSupported()) {
-                Desktop desktop = Desktop.getDesktop();
-                Desktop.getDesktop().browse( new URI( "http://localhost:8080/jvmcom" ) );
+            Desktop desktop = Desktop.getDesktop();
+            Desktop.getDesktop().browse( new URI( "http://localhost:" + args[0] + "/jvmcom" ) );
             }
         </groovy>
     </target>
 
-    <target name="web.stop" depends="fetchlibs">
-        <exec command="target/apache-tomcat-9.0.68/bin/catalina.sh stop" />
+    <target name="nodeIndex">
+        <property name="nodeIndex" value="0"/>
+        <property name="dir" value="target/tomcat${nodeIndex}"/>
+        <property name="http" value="808${nodeIndex}"/>
+        <property name="admin" value="818${nodeIndex}"/>
+        <property name="ajp" value="828${nodeIndex}"/>
+        <echo>
+            Using node index ${nodeIndex}.
+            To define a node index use
+
+            ant -DnodeIndex=X web.start
+
+            where X is the index of the node.
+
+            Ports used are http / admin / ajp: ${http} / ${admin} / ${ajp}
+        </echo>
     </target>
 
-    <target name="help" depends="usage" />
+    <target name="web.stop" depends="fetchlibs, nodeIndex">
+        <property name="dir" value="target/tomcat${nodeIndex}"/>
+        <exec command="${dir}/bin/catalina.sh stop"/>
+    </target>
+
+    <target name="help" depends="usage"/>
 
     <target name="usage">
         <echo>
 
-Sample project using ant and ivy
+            Sample project using ant and ivy
 
-ant tools.install ............. Install tools: ivy
-ant hello.groovy .............. Test the groovy installation
-ant test ...................... Run unit tests
-ant integration ............... Run integration tests
-ant clean ..................... Delete generated files
-ant clean.all ................. Delete all generated or downloaded files
-ant test ...................... Run unit tests
+            ant tools.install ..................... Install tools: ivy
+            ant hello.groovy ...................... Test the groovy installation
+            ant test .............................. Run unit tests
+            ant integration ....................... Run integration tests
+            ant clean ............................. Delete generated files
+            ant clean.all ......................... Delete all generated or downloaded files
+            ant test .............................. Run unit tests
 
-ant server .................... Start server in terminal
-ant client .................... Start client in terminal
+            ant server ............................ Start server in terminal
+            ant client ............................ Start client in terminal
 
-ant web.start ................. Start tomcat
-ant web.stop .................. Stop tomcat
+            ant [-DnodeIndex=X] web.start ......... Start tomcat
+            ant [-DnodeIndex=X] web.stop .......... Stop tomcat
 
-Options:
--Dhost=locahost ............... Host to connect client to
--Dport=port ................... Port for server or client connection
+            Options:
+            -Dhost=locahost ....................... Host to connect client to
+            -Dport=port ........................... Port for server or client connection
 
 
         </echo>
