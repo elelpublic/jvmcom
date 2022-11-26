@@ -144,7 +144,7 @@
         <echo file="target/client.sh">#!/bin/sh
             java -cp target/classes:lib/* com.infodesire.jvmcom.Main -h ${host} -p ${port} client
         </echo>
-        <exec command="chmod +x target/client.sh"></exec>
+        <exec command="chmod +x target/client.sh" />
         <echo>Call target/client.sh</echo>
     </target>
 
@@ -184,7 +184,7 @@
             }
             }
         </groovy>
-        <fail if="failures"></fail>
+        <fail if="failures" />
     </target>
 
     <target name="integration" depends="test-quietly, integration.run">
@@ -201,11 +201,11 @@
             }
             }
         </groovy>
-        <fail if="failures"></fail>
+        <fail if="failures" />
     </target>
 
     <target name="test-quietly" depends="test.run">
-        <fail if="failures"></fail>
+        <fail if="failures" />
     </target>
 
 

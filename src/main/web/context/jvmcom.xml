@@ -1,0 +1,9 @@
+<Context>
+
+    <Parameter
+        name="configDir"
+        value="$HOME/.jvmcom"
+        override="false"
+        />
+
+</Context>
