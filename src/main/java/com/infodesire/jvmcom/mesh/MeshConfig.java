@@ -1,11 +1,12 @@
 package com.infodesire.jvmcom.mesh;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Properties;
 import java.util.SortedMap;
-import java.util.SortedSet;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 public class MeshConfig {
 
@@ -29,6 +30,12 @@ public class MeshConfig {
 
     return config;
 
+  }
+
+  public static MeshConfig loadFromFile( File file ) throws IOException {
+    Properties properties = new Properties();
+    properties.load( new FileReader( file ) );
+    return loadFromProperties( properties );
   }
 
   public SortedMap<String, NodeAddress> getMembers() {

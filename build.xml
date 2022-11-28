@@ -300,7 +300,7 @@
         <delete dir="tools"/>
     </target>
 
-    <target name="web.build" depends="nodeIndex, war, setup.groovy">
+    <target name="web.build" depends="tomcatNum, war, setup.groovy">
 
         <mkdir dir="${dir}"/>
         <unzip
@@ -348,7 +348,7 @@
 
     </target>
 
-    <target name="web.start" depends="nodeIndex, web.build">
+    <target name="web.start" depends="tomcatNum, web.build">
         <exec command="${dir}/bin/catalina.sh start"/>
         <groovy>
             <arg line="${http}"/>
@@ -361,17 +361,17 @@
         </groovy>
     </target>
 
-    <target name="nodeIndex">
-        <property name="nodeIndex" value="0"/>
-        <property name="dir" value="target/tomcat${nodeIndex}"/>
-        <property name="http" value="808${nodeIndex}"/>
-        <property name="admin" value="818${nodeIndex}"/>
-        <property name="ajp" value="828${nodeIndex}"/>
+    <target name="tomcatNum">
+        <property name="tomcatNum" value="0"/>
+        <property name="dir" value="target/tomcat${tomcatNum}"/>
+        <property name="http" value="808${tomcatNum}"/>
+        <property name="admin" value="818${tomcatNum}"/>
+        <property name="ajp" value="828${tomcatNum}"/>
         <echo>
-            Using node index ${nodeIndex}.
+            Using node index ${tomcatNum}.
             To define a node index use
 
-            ant -DnodeIndex=X web.start
+            ant -DtomcatNum=X web.start
 
             where X is the index of the node.
 
@@ -379,9 +379,22 @@
         </echo>
     </target>
 
-    <target name="web.stop" depends="fetchlibs, nodeIndex">
-        <property name="dir" value="target/tomcat${nodeIndex}"/>
+    <target name="web.stop" depends="fetchlibs, tomcatNum">
+        <property name="dir" value="target/tomcat${tomcatNum}"/>
         <exec command="${dir}/bin/catalina.sh stop"/>
+    </target>
+
+    <target name="node" depends="compile" >
+        <property name="nodeId" value="node1" />
+        <java
+            classpath="target/classes"
+            classname="com.infodesire.jvmcom.Main"
+            >
+            <arg value="node" />
+            <arg line="-c src/main/mesh/sample.mesh" />
+            <arg line="-n ${nodeId}" />
+            <classpath refid="thirdparty.jars"/>
+        </java>
     </target>
 
     <target name="help" depends="usage"/>
@@ -389,26 +402,46 @@
     <target name="usage">
         <echo>
 
-            Sample project using ant and ivy
+jvmcom - Library for client server and mesh operation between multiple JVM instances
 
-            ant tools.install ..................... Install tools: ivy
-            ant hello.groovy ...................... Test the groovy installation
-            ant test .............................. Run unit tests
-            ant integration ....................... Run integration tests
-            ant clean ............................. Delete generated files
-            ant clean.all ......................... Delete all generated or downloaded files
-            ant test .............................. Run unit tests
+ant tools.install ..................... Install tools: ivy
+ant hello.groovy ...................... Test the groovy installation
+ant test .............................. Run unit tests
+ant integration ....................... Run integration tests
+ant clean ............................. Delete generated files
+ant clean.all ......................... Delete all generated or downloaded files
+ant test .............................. Run unit tests
 
-            ant server ............................ Start server in terminal
-            ant client ............................ Start client in terminal
 
-            ant [-DnodeIndex=X] web.start ......... Start tomcat
-            ant [-DnodeIndex=X] web.stop .......... Stop tomcat
+# client server -------------------------------------------------------
 
-            Options:
-            -Dhost=locahost ....................... Host to connect client to
-            -Dport=port ........................... Port for server or client connection
+ant server ............................ Start server in terminal
+ant client ............................ Start client in terminal
 
+Options:
+
+-Dhost=locahost ....................... Host to connect client to
+-Dport=port ........................... Port for server or client connection
+
+
+# mesh tomcat ---------------------------------------------------------
+
+ant web.start ......................... Start tomcat
+ant web.stop .......................... Stop tomcat
+
+Options:
+
+-DtomcatNum=X ......................... Index of tomcat instance, shoule be 0, 1, 2, ...
+
+
+# mesh command line ---------------------------------------------------
+
+ant node .............................. Start a mesh node on the command line
+
+Options:
+
+-Did=ID ............................... Id of node
+-Dconfig=FILE ......................... Configuration file of the mesh
 
         </echo>
     </target>

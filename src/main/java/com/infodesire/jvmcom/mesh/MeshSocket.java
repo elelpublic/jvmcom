@@ -35,4 +35,8 @@ public class MeshSocket {
     return client;
   }
 
+  public void close() throws InterruptedException {
+    server.stop( 1000 );
+  }
+
 }

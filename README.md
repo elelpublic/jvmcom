@@ -49,8 +49,8 @@ remove the id from their list of active nodes.
 ### Unexpected leaving
 
 If a node crashes the other nodes will of course not be notified automatically.
-Should one node come across a serve no longer being available it will send
-an "lost <ID>" to all active nodes for them be updated about the node loss.
+Should one node come across a service no longer being available it will send
+a "lost <ID>" to all active nodes for them be updated about the node loss.
 
 A health service could also be built, to regularly ping all nodes and report
 any unexpected joins or losses.

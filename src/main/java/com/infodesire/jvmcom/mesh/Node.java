@@ -3,14 +3,17 @@ package com.infodesire.jvmcom.mesh;
 import com.infodesire.jvmcom.clientserver.HandlerReply;
 import com.infodesire.jvmcom.clientserver.LineBufferClient;
 import com.infodesire.jvmcom.clientserver.LineBufferHandler;
+import org.pcollections.PSortedSet;
+import org.pcollections.TreePSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * A mesh node
@@ -18,32 +21,76 @@ import java.util.function.Supplier;
  */
 public class Node {
 
+  private static Logger logger = LoggerFactory.getLogger( "Mesh" );
+
   private final MeshConfig config;
   private final NodeAddress myAddress;
-  private final SortedSet<NodeAddress> activeMembers = new TreeSet<>();
-  private boolean hasJoined = false;
-  private final MeshSocket meshSocket;
+  private PSortedSet<NodeAddress> activeMembers = TreePSet.empty();
+  private MeshSocket meshSocket;
 
   public Node( MeshConfig config, NodeAddress myAddress ) throws IOException {
     this.config = config;
     this.myAddress = myAddress;
-    meshSocket = new MeshSocket( myAddress, new HandlerFactory() );
+    logger.info( "Create mesh node on " + myAddress );
   }
 
   /**
    * Join the mesh
    *
    */
-  public void join() {
+  public void join() throws IOException {
+
+    if( meshSocket != null ) {
+      throw new RuntimeException( "Already joined." );
+    }
+
+    meshSocket = new MeshSocket( myAddress, new HandlerFactory() );
+
+    updateActiveMembers();
+    Set<NodeAddress> lostNodes = new HashSet<>();
+    for( NodeAddress nodeAddress : activeMembers ) {
+      if( !nodeAddress.equals( myAddress ) ) {
+        try {
+          notifyJoin( nodeAddress );
+        }
+        catch( IOException ex ) {
+          Mesh.logger.error( "Error sending join request to " + nodeAddress, ex );
+          lostNodes.add( nodeAddress );
+        }
+      }
+    }
+    for( NodeAddress nodeAddress : activeMembers ) {
+      if( !lostNodes.contains( nodeAddress ) && !nodeAddress.equals( myAddress ) ) {
+        for( NodeAddress lostNode : lostNodes ) {
+          try {
+            notifyLost( nodeAddress, lostNode );
+          }
+          catch( IOException ex ) {
+            Mesh.logger.error( "Error sending lost request to " + nodeAddress, ex );
+          }
+        }
+      }
+    }
+    for( NodeAddress lostNode : lostNodes ) {
+      activeMembers = activeMembers.minus( lostNode );
+    }
+
+  }
+
+  /**
+   * Leave the mesh
+   *
+   */
+  public void leave() {
 
     updateActiveMembers();
     Set<NodeAddress> lostNodes = new HashSet<>();
     for( NodeAddress nodeAddress : activeMembers ) {
       try {
-        notifyJoin( nodeAddress );
+        notifyLeave( nodeAddress );
       }
       catch( IOException ex ) {
-        Mesh.logger.error( "Error sending join request to " + nodeAddress, ex );
+        Mesh.logger.error( "Error sending leave request to " + nodeAddress, ex );
         lostNodes.add( nodeAddress );
       }
     }
@@ -60,7 +107,17 @@ public class Node {
       }
     }
     for( NodeAddress lostNode : lostNodes ) {
-      activeMembers.remove( lostNode );
+      activeMembers = activeMembers.minus( lostNode );
+    }
+
+    try {
+      meshSocket.close();
+    }
+    catch( InterruptedException ex ) {
+      logger.error( "Error closing node connections." );
+    }
+    finally {
+      meshSocket = null;
     }
 
   }
@@ -121,24 +178,29 @@ public class Node {
   }
 
   private void updateActiveMembers() {
-    activeMembers.clear();
+    activeMembers = TreePSet.empty();
+    if( hasJoined() ) {
+      activeMembers = activeMembers.plus( myAddress );
+    }
     for( NodeAddress nodeAddress : config.getMembers().values() ) {
-      try {
-        String replyId = ping( nodeAddress );
-        if( replyId != null ) {
-          if( !replyId.equals( nodeAddress.getId() ) ) {
-            Mesh.logger.error( "Node " + nodeAddress + " replies with wrong id '" + replyId + "'. Will ignore this node." );
+      if( !nodeAddress.equals( myAddress ) ) {
+        try {
+          String replyId = ping( nodeAddress );
+          if( replyId != null ) {
+            if( !replyId.equals( nodeAddress.getId() ) ) {
+              Mesh.logger.error( "Node " + nodeAddress + " replies with wrong id '" + replyId + "'. Will ignore this node." );
+            }
+            else {
+              activeMembers = activeMembers.plus( nodeAddress );
+            }
           }
           else {
-            activeMembers.add( nodeAddress );
+            Mesh.logger.debug( "No reply from " + nodeAddress );
           }
         }
-        else {
+        catch( IOException ex ) {
           Mesh.logger.debug( "No reply from " + nodeAddress );
         }
-      }
-      catch( IOException ex ) {
-        Mesh.logger.debug( "No reply from " + nodeAddress );
       }
     }
   }
@@ -172,7 +234,10 @@ public class Node {
     public HandlerReply process( String line ) {
       if( line != null ) {
         if( line.equals( "ping" ) ) {
-          return new HandlerReply( myAddress.getId() );
+          return handlePing();
+        }
+        else if( line.equals( "active" ) ) {
+          return handleActive();
         }
         else return new HandlerReply( MeshError.UNKNOWN_COMMAND );
       }
@@ -183,5 +248,35 @@ public class Node {
 
   }
 
+  /**
+   * Handle "ping" request
+   *
+   * @return Id of this node
+   *
+   */
+  protected HandlerReply handlePing() {
+    return new HandlerReply( myAddress.getId() );
+  }
+
+  /**
+   * Handle "active" request
+   *
+   * @return List of ids of active nodes
+   *
+   */
+  protected HandlerReply handleActive() {
+
+    String nodeList = activeMembers
+      .stream()
+      .map( nodeAddress -> nodeAddress.getId() )
+      .collect( Collectors.joining( " " ) );
+
+    return new HandlerReply( nodeList );
+
+  }
+
+  public boolean hasJoined() {
+    return meshSocket != null;
+  }
 
 }

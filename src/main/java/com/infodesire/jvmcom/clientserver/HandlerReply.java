@@ -15,7 +15,7 @@ public class HandlerReply {
   /**
    * Reply text to be sent to client
    */
-  String replyText;
+  public String replyText;
 
   /**
    * Reply with text an continue = true

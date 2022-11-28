@@ -1,6 +1,9 @@
 package com.infodesire.jvmcom;
 
 import com.infodesire.jvmcom.clientserver.LineBufferClient;
+import com.infodesire.jvmcom.mesh.CliNode;
+import com.infodesire.jvmcom.mesh.MeshConfig;
+import com.infodesire.jvmcom.mesh.NodeAddress;
 import com.infodesire.jvmcom.services.value.ValueServer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -10,7 +13,10 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.SystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.List;
@@ -21,6 +27,8 @@ import java.util.List;
  *
  */
 public class Main {
+
+  private static Logger logger = LoggerFactory.getLogger( "jvmcom" );
 
   private static Options options;
 
@@ -57,7 +65,10 @@ public class Main {
       port = Integer.parseInt( cmd.getOptionValue( "p" ) );
     }
 
-    if( command.equals( "help" ) ) {
+    if( command == null ) {
+      showUsage( "No command given" );
+    }
+    else if( command.equals( "help" ) ) {
       showUsage( "" );
     }
     else if( command.equals( "server" ) ) {
@@ -71,6 +82,28 @@ public class Main {
     else if( command.equals( "client" ) ) {
       LineBufferClient client = new LineBufferClient( host, port );
       client.connect( true );
+    }
+    else if( command.equals( "node" ) ) {
+      if( !cmd.hasOption( "c" ) ) {
+        showUsage( "No node configuration file. Please use -c FILE" );
+        Runtime.getRuntime().halt( 1 );
+      }
+      if( !cmd.hasOption( "n" ) ) {
+        showUsage( "Node id missing. Please use -n ID" );
+        Runtime.getRuntime().halt( 1 );
+      }
+      String configFile = cmd.getOptionValue( "c" );
+      String nodeId = cmd.getOptionValue( "n" );
+      MeshConfig config = MeshConfig.loadFromFile( new File( configFile ) );
+      NodeAddress myAddress = config.getMembers().get( nodeId );
+      if( myAddress == null ) {
+        showUsage( "No entry found for node id " + nodeId + " in node configuration " + configFile );
+        Runtime.getRuntime().halt( 1 );
+      }
+      new CliNode( config, myAddress ).waitForShutDown();
+    }
+    else {
+      showUsage( "Unknown command: " + command );
     }
 
     Runtime.getRuntime().halt( 0 );
@@ -104,6 +137,24 @@ public class Main {
         .build()
     );
 
+    options.addOption(
+      Option.builder()
+        .argName( "config" )
+        .option( "c" )
+        .hasArg()
+        .desc( "mesh configuration file" )
+        .build()
+    );
+
+    options.addOption(
+      Option.builder()
+        .argName( "node" )
+        .option( "n" )
+        .hasArg()
+        .desc( "node id" )
+        .build()
+    );
+
     return options;
 
   }
@@ -118,7 +169,8 @@ public class Main {
     print( "commands:" );
     print( "help \t show help" );
     print( "server \t start a server" );
-    print( "client \t start a server" );
+    print( "client \t start a client" );
+    print( "node -i ID\t start mesh node with the given ID" );
 
   }
 
