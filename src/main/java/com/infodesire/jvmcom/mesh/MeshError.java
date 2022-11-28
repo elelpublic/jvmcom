@@ -4,6 +4,8 @@ public enum MeshError {
 
   UNKNOWN_COMMAND,
 
-  NULL_COMMAND
+  NULL_COMMAND,
+
+  UNKNOWN_NODE_ID;
 
 }

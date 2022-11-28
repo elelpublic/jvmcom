@@ -3,6 +3,7 @@ package com.infodesire.jvmcom.mesh;
 import com.infodesire.jvmcom.clientserver.HandlerReply;
 import com.infodesire.jvmcom.clientserver.LineBufferClient;
 import com.infodesire.jvmcom.clientserver.LineBufferHandler;
+import com.infodesire.jvmcom.pool.SocketPool;
 import org.pcollections.PSortedSet;
 import org.pcollections.TreePSet;
 import org.slf4j.Logger;
@@ -25,12 +26,14 @@ public class Node {
 
   private final MeshConfig config;
   private final NodeAddress myAddress;
+  private final SocketPool socketPool;
   private PSortedSet<NodeAddress> activeMembers = TreePSet.empty();
   private MeshSocket meshSocket;
 
-  public Node( MeshConfig config, NodeAddress myAddress ) throws IOException {
+  public Node( MeshConfig config, NodeAddress myAddress, SocketPool socketPool ) {
     this.config = config;
     this.myAddress = myAddress;
+    this.socketPool = socketPool;
     logger.info( "Create mesh node on " + myAddress );
   }
 
@@ -45,34 +48,43 @@ public class Node {
     }
 
     meshSocket = new MeshSocket( myAddress, new HandlerFactory() );
-
+    
     updateActiveMembers();
     Set<NodeAddress> lostNodes = new HashSet<>();
     for( NodeAddress nodeAddress : activeMembers ) {
       if( !nodeAddress.equals( myAddress ) ) {
         try {
-          notifyJoin( nodeAddress );
+          LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
+          notifyJoin( client );
         }
-        catch( IOException ex ) {
+        catch( Exception ex ) {
           Mesh.logger.error( "Error sending join request to " + nodeAddress, ex );
           lostNodes.add( nodeAddress );
         }
       }
     }
+
+    notifyLost( lostNodes );
+
+  }
+
+  private void notifyLost( Set<NodeAddress> lostNodes ) {
+
+    for( NodeAddress lostNode : lostNodes ) {
+      activeMembers = activeMembers.minus( lostNode );
+    }
     for( NodeAddress nodeAddress : activeMembers ) {
       if( !lostNodes.contains( nodeAddress ) && !nodeAddress.equals( myAddress ) ) {
         for( NodeAddress lostNode : lostNodes ) {
           try {
-            notifyLost( nodeAddress, lostNode );
+            LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
+            notifyLost( client, lostNode );
           }
-          catch( IOException ex ) {
+          catch( Exception ex ) {
             Mesh.logger.error( "Error sending lost request to " + nodeAddress, ex );
           }
         }
       }
-    }
-    for( NodeAddress lostNode : lostNodes ) {
-      activeMembers = activeMembers.minus( lostNode );
     }
 
   }
@@ -80,38 +92,30 @@ public class Node {
   /**
    * Leave the mesh
    *
+   * @param timeoutMs Number of ms to wait for orderly leave
+   *
    */
-  public void leave() {
+  public void leave( long timeoutMs ) {
 
     updateActiveMembers();
     Set<NodeAddress> lostNodes = new HashSet<>();
     for( NodeAddress nodeAddress : activeMembers ) {
-      try {
-        notifyLeave( nodeAddress );
-      }
-      catch( IOException ex ) {
-        Mesh.logger.error( "Error sending leave request to " + nodeAddress, ex );
-        lostNodes.add( nodeAddress );
-      }
-    }
-    for( NodeAddress nodeAddress : activeMembers ) {
-      if( !lostNodes.contains( nodeAddress ) ) {
-        for( NodeAddress lostNode : lostNodes ) {
-          try {
-            notifyLost( nodeAddress, lostNode );
-          }
-          catch( IOException ex ) {
-            Mesh.logger.error( "Error sending lost request to " + nodeAddress, ex );
-          }
+      if( !nodeAddress.equals( myAddress ) ) {
+        try {
+          LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
+          notifyLeave( client );
+        }
+        catch( Exception ex ) {
+          Mesh.logger.error( "Error sending leave request to " + nodeAddress, ex );
+          lostNodes.add( nodeAddress );
         }
       }
     }
-    for( NodeAddress lostNode : lostNodes ) {
-      activeMembers = activeMembers.minus( lostNode );
-    }
+
+    notifyLost( lostNodes );
 
     try {
-      meshSocket.close();
+      meshSocket.close( timeoutMs );
     }
     catch( InterruptedException ex ) {
       logger.error( "Error closing node connections." );
@@ -125,54 +129,46 @@ public class Node {
   /**
    * Notify a node of this node joining the mesh
    *
-   * @param nodeAddress Node to be notified
+   * @param client Client connected to the node to be notified
    * @throws IOException when node could not be notified for network reasons
    *
    */
-  public void notifyJoin( NodeAddress nodeAddress ) throws IOException {
-    LineBufferClient client = meshSocket.getClient( nodeAddress.getInetSocketAddress().getHostName(),
-      nodeAddress.getInetSocketAddress().getPort() );
+  public void notifyJoin( LineBufferClient client ) throws IOException {
     client.send( "join " + myAddress.getId() );
   }
 
   /**
    * Notify a node of this node leaving the mesh
    *
-   * @param nodeAddress Node to be notified
+   * @param client Client connected to the node to be notified
    * @throws IOException when node could not be notified for network reasons
    *
    */
-  public void notifyLeave( NodeAddress nodeAddress ) throws IOException {
-    LineBufferClient client = meshSocket.getClient( nodeAddress.getInetSocketAddress().getHostName(),
-      nodeAddress.getInetSocketAddress().getPort() );
+  public void notifyLeave( LineBufferClient client ) throws IOException {
     client.send( "leave " + myAddress.getId() );
   }
 
   /**
    * Notify a node of a node being lost from the mesh
    *
-   * @param nodeAddress Node to be notified
+   * @param client Client connected to the node to be notified
    * @param lostNode The node to which the connection was lost
    * @throws IOException when node could not be notified for network reasons
    *
    */
-  public void notifyLost( NodeAddress nodeAddress, NodeAddress lostNode ) throws IOException {
-    LineBufferClient client = meshSocket.getClient( nodeAddress.getInetSocketAddress().getHostName(),
-      nodeAddress.getInetSocketAddress().getPort() );
+  public void notifyLost( LineBufferClient client, NodeAddress lostNode ) throws IOException {
     client.send( "lost " + lostNode.getId() );
   }
 
   /**
    * Send ping request
    *
-   * @param nodeAddress Node to send ping request to
+   * @param client Client connected to the node to be pinged
    * @return The id string returned by the target node (should be the id of that node)
    * @throws IOException when node could not be notified for network reasons
    *
    */
-  public String ping( NodeAddress nodeAddress ) throws IOException {
-    LineBufferClient client = meshSocket.getClient( nodeAddress.getInetSocketAddress().getHostName(),
-      nodeAddress.getInetSocketAddress().getPort() );
+  public String ping( LineBufferClient client ) throws IOException {
     StringBuffer reply = client.send( "ping" );
     return reply == null ? "" : reply.toString();
   }
@@ -185,7 +181,8 @@ public class Node {
     for( NodeAddress nodeAddress : config.getMembers().values() ) {
       if( !nodeAddress.equals( myAddress ) ) {
         try {
-          String replyId = ping( nodeAddress );
+          LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
+          String replyId = ping( client );
           if( replyId != null ) {
             if( !replyId.equals( nodeAddress.getId() ) ) {
               Mesh.logger.error( "Node " + nodeAddress + " replies with wrong id '" + replyId + "'. Will ignore this node." );
@@ -198,7 +195,7 @@ public class Node {
             Mesh.logger.debug( "No reply from " + nodeAddress );
           }
         }
-        catch( IOException ex ) {
+        catch( Exception ex ) {
           Mesh.logger.debug( "No reply from " + nodeAddress );
         }
       }
@@ -211,6 +208,16 @@ public class Node {
 
   public Collection<NodeAddress> getActiveMembers() {
     return activeMembers;
+  }
+
+  /**
+   * Leave mesh and shut down node
+   *
+   * @param timeoutMs Number of ms to wait for orderly leave
+   *
+   */
+  public void shutDown( long timeoutMs ) {
+    leave( timeoutMs );
   }
 
   /**
@@ -239,6 +246,12 @@ public class Node {
         else if( line.equals( "active" ) ) {
           return handleActive();
         }
+        else if( line.startsWith( "join" ) ) {
+          return handleJoin( line.substring( 5 ) );
+        }
+        else if( line.startsWith( "leave" ) ) {
+          return handleLeave( line.substring( 6 ) );
+        }
         else return new HandlerReply( MeshError.UNKNOWN_COMMAND );
       }
       else { // null request
@@ -246,6 +259,29 @@ public class Node {
       }
     }
 
+
+  }
+
+  private HandlerReply handleJoin( String nodeId ) {
+    NodeAddress nodeAddress = config.getMembers().get( nodeId );
+    if( nodeAddress != null ) {
+      activeMembers = activeMembers.plus( nodeAddress );
+      return handleActive();
+    }
+    else {
+      return new HandlerReply( MeshError.UNKNOWN_NODE_ID );
+    }
+  }
+
+  private HandlerReply handleLeave( String nodeId ) {
+    NodeAddress nodeAddress = config.getMembers().get( nodeId );
+    if( nodeAddress != null ) {
+      activeMembers = activeMembers.minus( nodeAddress );
+      return handleActive();
+    }
+    else {
+      return new HandlerReply( MeshError.UNKNOWN_NODE_ID );
+    }
   }
 
   /**

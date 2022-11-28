@@ -7,6 +7,14 @@ import java.util.List;
 
 public class SocketUtils {
 
+
+  /**
+   * Find a free port
+   *
+   * @return A single free port
+   * @throws IOException error creating port
+   *
+   */
   public static int getFreePort() throws IOException {
     ServerSocket serverSocket = new ServerSocket( 0 );
     int port = serverSocket.getLocalPort();
@@ -14,6 +22,13 @@ public class SocketUtils {
     return port;
   }
 
+  /**
+   * Find multiple free ports
+   *
+   * @param number Numbet of free ports to create and return
+   * @return List of free ports to be used
+   * @throws IOException
+   */
   public static List<Integer> getFreePorts( int number ) throws IOException {
 
     IOException exception = null;

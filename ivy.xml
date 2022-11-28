@@ -77,6 +77,12 @@
         -->
         <dependency org="org.pcollections" name="pcollections" rev="${pcollections.version}"/>
 
+        <!--
+        https://mvnrepository.com/artifact/org.apache.commons/commons-pool2
+
+        Pooling of connections
+        -->
+        <dependency org="org.apache.commons" name="commons-pool2" rev="${commons-pool2.version}"/>
 
     </dependencies>
 

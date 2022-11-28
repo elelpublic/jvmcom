@@ -4,6 +4,7 @@ import com.infodesire.jvmcom.clientserver.LineBufferClient;
 import com.infodesire.jvmcom.mesh.CliNode;
 import com.infodesire.jvmcom.mesh.MeshConfig;
 import com.infodesire.jvmcom.mesh.NodeAddress;
+import com.infodesire.jvmcom.pool.SocketPool;
 import com.infodesire.jvmcom.services.value.ValueServer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -100,7 +101,8 @@ public class Main {
         showUsage( "No entry found for node id " + nodeId + " in node configuration " + configFile );
         Runtime.getRuntime().halt( 1 );
       }
-      new CliNode( config, myAddress ).waitForShutDown();
+      SocketPool socketPool = new SocketPool();
+      new CliNode( config, myAddress, socketPool ).waitForShutDown();
     }
     else {
       showUsage( "Unknown command: " + command );

@@ -19,8 +19,8 @@ public class LineBufferClient {
   private static Logger logger = LoggerFactory.getLogger( "Client" );
 
 
-  private final String host;
-  private final int port;
+  private String host;
+  private int port;
   private PrintWriter serverOut;
   private Socket socket;
   private BufferedReader in;
@@ -33,13 +33,22 @@ public class LineBufferClient {
   }
 
 
+  public LineBufferClient( Socket socket ) throws IOException {
+    this.socket = socket;
+    welcome();
+  }
+
+  private void welcome() throws IOException {
+    serverOut = new PrintWriter( socket.getOutputStream() );
+    in = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
+    logger.info( "Server reply: " + getReply() );
+  }
+
   public void connect( boolean interactive ) throws IOException {
 
     logger.info( "Connecting to " + host + ":" + port );
     socket = new Socket( host, port );
-    serverOut = new PrintWriter( socket.getOutputStream() );
-    in = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
-    logger.info( "Server reply: " + getReply() );
+    welcome();
 
     if( interactive ) {
 
@@ -108,7 +117,10 @@ public class LineBufferClient {
 
   public void close() throws IOException {
     logger.info( "Closing connection." );
-    socket.close();
+    if( socket != null ) {
+      socket.close();
+      socket = null;
+    }
   }
 
   /**

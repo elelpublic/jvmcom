@@ -1,5 +1,6 @@
 package com.infodesire.jvmcom.mesh;
 
+import com.infodesire.jvmcom.pool.SocketPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,8 +21,10 @@ public class CliNode extends Node implements Runnable {
 
   private final CompletableFuture<Void> background;
 
-  public CliNode( MeshConfig config, NodeAddress myAddress ) throws IOException {
-    super( config, myAddress );
+  private long leaveTimeoutMs = Long.parseLong( System.getProperty( "com.infodesire.jvmcom.mesh.leaveTimeoutMs", "1000" ) );
+
+  public CliNode( MeshConfig config, NodeAddress myAddress, SocketPool socketPool ) throws IOException {
+    super( config, myAddress, socketPool );
 
     background = CompletableFuture.runAsync( this );
 
@@ -31,7 +34,8 @@ public class CliNode extends Node implements Runnable {
   public void run() {
     BufferedReader in = new BufferedReader( new InputStreamReader( System.in ) );
     System.out.println( "Node CLI. Enter help for a list of commands." );
-    while( true ) {
+    boolean shutDown = false;
+    while( !shutDown ) {
       System.out.print( getAddress().getId() + " > " );
       try {
         String input = in.readLine();
@@ -52,8 +56,13 @@ public class CliNode extends Node implements Runnable {
             printStatus();
           }
           else if( input.equals( "leave" ) ) {
-            leave();
+            leave( leaveTimeoutMs );
             printStatus();
+          }
+          else if( input.equals( "shutDown" ) ) {
+            leave( leaveTimeoutMs );
+            printStatus();
+            shutDown = true;
           }
           else if( input.equals( "active" ) ) {
             printStatus();
@@ -67,6 +76,7 @@ public class CliNode extends Node implements Runnable {
         ex.printStackTrace();
       }
     }
+    System.out.println( "Bye." );
   }
 
   private void printStatus() {
