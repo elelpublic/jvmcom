@@ -165,7 +165,12 @@ public class Main {
   private static void showUsage( String message ) {
 
     HelpFormatter formatter = new HelpFormatter();
-    print( message );
+    if( message != null && message.trim().length() > 0 ) {
+      print( "####################################" );
+      print( message );
+      print( "####################################" );
+      print( "" );
+    }
     formatter.printHelp("hello [options] command", options);
     print( "" );
     print( "commands:" );

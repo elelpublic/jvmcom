@@ -152,9 +152,9 @@
 
     <target name="main" depends="test-quietly, hostport">
         <java
-                classpath="target/classes"
-                classname="com.infodesire.jvmcom.Main"
-        >
+            classpath="target/classes"
+            classname="com.infodesire.jvmcom.Main"
+            >
             <arg line="-h ${host} -p ${port} ${command}"/>
             <classpath refid="thirdparty.jars"/>
         </java>
@@ -387,14 +387,14 @@
     </target>
 
     <target name="node" depends="compile" >
-        <property name="nodeId" value="node1" />
+        <property name="id" value="node1" />
         <java
             classpath="target/classes"
             classname="com.infodesire.jvmcom.Main"
             >
             <arg value="node" />
             <arg line="-c src/main/mesh/sample.mesh" />
-            <arg line="-n ${nodeId}" />
+            <arg line="-n ${id}" />
             <classpath refid="thirdparty.jars"/>
         </java>
     </target>
@@ -406,13 +406,12 @@
 
 jvmcom - Library for client server and mesh operation between multiple JVM instances
 
-ant tools.install ..................... Install tools: ivy
-ant hello.groovy ...................... Test the groovy installation
-ant test .............................. Run unit tests
-ant integration ....................... Run integration tests
 ant clean ............................. Delete generated files
 ant clean.all ......................... Delete all generated or downloaded files
+ant jar ............................... Create jar file
+ant war ............................... Create war file
 ant test .............................. Run unit tests
+ant integration ....................... Run integration tests
 
 
 # client server -------------------------------------------------------

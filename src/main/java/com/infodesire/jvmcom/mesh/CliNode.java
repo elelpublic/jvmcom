@@ -1,5 +1,6 @@
 package com.infodesire.jvmcom.mesh;
 
+import com.infodesire.jvmcom.clientserver.LineBufferClient;
 import com.infodesire.jvmcom.pool.SocketPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,20 +34,27 @@ public class CliNode extends Node implements Runnable {
   @Override
   public void run() {
     BufferedReader in = new BufferedReader( new InputStreamReader( System.in ) );
-    System.out.println( "Node CLI. Enter help for a list of commands." );
+    p( "----------------------------------------------------------" );
+    p( "Mesh Node CLI." );
+    printStatus();
+    p( "Enter 'help' for a list of commands." );
     boolean shutDown = false;
     while( !shutDown ) {
-      System.out.print( getAddress().getId() + " > " );
+      System.out.print( myAddress.getId() + " > " );
       try {
         String input = in.readLine();
         if( input != null ) {
           if( input.equals( "help" ) ) {
             usage();
           }
-          else if( input.equals( "status" ) ) {
+          else if( input.equals( "ls" ) ) {
             printStatus();
           }
-          else if( input.equals( "join" ) ) {
+          else if( input.startsWith( "ping " ) ) {
+            String nodeId = input.substring( 5 );
+            ping( nodeId );
+          }
+          else if( input.equals( "in" ) ) {
             try {
               join();
             }
@@ -55,17 +63,14 @@ public class CliNode extends Node implements Runnable {
             }
             printStatus();
           }
-          else if( input.equals( "leave" ) ) {
+          else if( input.equals( "out" ) ) {
             leave( leaveTimeoutMs );
             printStatus();
           }
-          else if( input.equals( "shutDown" ) ) {
+          else if( input.equals( "quit" ) ) {
             leave( leaveTimeoutMs );
             printStatus();
             shutDown = true;
-          }
-          else if( input.equals( "active" ) ) {
-            printStatus();
           }
           else {
             usage( "Unknown command: " + input );
@@ -76,21 +81,44 @@ public class CliNode extends Node implements Runnable {
         ex.printStackTrace();
       }
     }
-    System.out.println( "Bye." );
+    p( "Bye." );
+  }
+
+  private void ping( String nodeId ) {
+    try {
+      NodeAddress nodeAddress = config.getMembers().get( nodeId );
+      LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
+      String reply = ping( client );
+      p( "Reply: " + reply );
+
+    }
+    catch( Exception ex ) {
+      ex.printStackTrace();
+    }
   }
 
   private void printStatus() {
 
-    System.out.println( "Node has" + (hasJoined() ? " " : " not ") + "joined." );
+    p( "----------------------------------------------------------" );
+    p( "Mesh name    : " + config.name );
+    p( "Node name    : " + myAddress.getId() );
+    p( "Node address : " + myAddress.getInetSocketAddress() );
+    p( "Node joined  : " + ( hasJoined() ? "yes" : "no" ) );
+    p( "----------------------------------------------------------" );
 
-    Collection<NodeAddress> all = getActiveMembers();
+    for( NodeAddress nodeAddress : config.getMembers().values() ) {
+      String nodeStatus = hasJoined() ? activeMembers.contains( nodeAddress ) ? "in" : "out" : ( nodeAddress.equals( myAddress ) ? "out" : "???" );
+      if( myAddress.equals( nodeAddress ) ) {
+        nodeStatus += " (this node)";
+      }
+      p( "Node '" + nodeAddress.getId() + "' " + nodeAddress.getInetSocketAddress() + " " + nodeStatus );
+    }
+    p( "----------------------------------------------------------" );
 
-    String text = all.stream()
-      .map( nodeAddress -> nodeAddress.getId() )
-      .collect( Collectors.joining( " " ) );
+  }
 
-    System.out.println( all.size() + " nodes: " + text );
-
+  private void p( String line ) {
+    System.out.println( line );
   }
 
   private void usage() {
@@ -99,14 +127,18 @@ public class CliNode extends Node implements Runnable {
 
   private void usage( String message ) {
     if( message != null ) {
-      System.out.println( message );
+      p( "###########################################" );
+      p( message );
+      p( "###########################################" );
     }
-    System.out.println( "help .............. show list of commands" );
-    System.out.println( "status ............ show if this node has joined" );
-    System.out.println( "join .............. join the mesh" );
-    System.out.println( "leave ............. leave the mesh" );
-    System.out.println( "active ............ show nodes in mesh" );
-    System.out.println( "ping host:ip ...... ping a node, will return node id" );
+    p( "Commands:" );
+    p( "" );
+    p( "ls ................ list nodes and show status" );
+    p( "in ................ join the mesh" );
+    p( "out ............... leave the mesh" );
+    p( "ping id ........... ping node" );
+    p( "quit .............. quit CLI" );
+    p( "" );
   }
 
   public void waitForShutDown() {

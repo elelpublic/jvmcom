@@ -35,6 +35,7 @@ public class SocketPool {
     GenericKeyedObjectPoolConfig<Socket> config = new GenericKeyedObjectPoolConfig();
     config.setTestOnBorrow( true );
     config.setTestOnReturn( true );
+    config.setJmxEnabled( false );
     pool = new GenericKeyedObjectPool<NodeAddress, Socket>( factory, config );
   }
 

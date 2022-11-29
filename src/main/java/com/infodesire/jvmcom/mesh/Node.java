@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,11 +25,11 @@ public class Node {
 
   private static Logger logger = LoggerFactory.getLogger( "Mesh" );
 
-  private final MeshConfig config;
-  private final NodeAddress myAddress;
-  private final SocketPool socketPool;
-  private PSortedSet<NodeAddress> activeMembers = TreePSet.empty();
-  private MeshSocket meshSocket;
+  protected final MeshConfig config;
+  protected final NodeAddress myAddress;
+  protected final SocketPool socketPool;
+  protected PSortedSet<NodeAddress> activeMembers = TreePSet.empty();
+  protected MeshSocket meshSocket;
 
   public Node( MeshConfig config, NodeAddress myAddress, SocketPool socketPool ) {
     this.config = config;
