@@ -14,6 +14,16 @@ import java.net.Socket;
 
 /**
  * Pool of connected sockets (because connect(...) is expensive)
+ *
+ * See here: https://commons.apache.org/proper/commons-pool/apidocs/org/apache/commons/pool2/PooledObjectFactory.html
+ *
+ * makeObject() is called whenever a new instance is needed.
+ * activateObject(org.apache.commons.pool2.PooledObject<T>) is invoked on every instance that has been passivated before it is borrowed from the pool.
+ * validateObject(org.apache.commons.pool2.PooledObject<T>) may be invoked on activated instances to make sure they can be borrowed from the pool. validateObject(org.apache.commons.pool2.PooledObject<T>) may also be used to test an instance being returned to the pool before it is passivated. It will only be invoked on an activated instance.
+ * passivateObject(org.apache.commons.pool2.PooledObject<T>) is invoked on every instance when it is returned to the pool.
+ * destroyObject(org.apache.commons.pool2.PooledObject<T>) is invoked on every instance when it is being "dropped" from the pool (whether due to the response from validateObject(org.apache.commons.pool2.PooledObject<T>), or for reasons specific to the pool implementation.) There is no guarantee that the instance being destroyed will be considered active, passive or in a generally consistent state.
+ *
+ *
  */
 public class SocketPool {
 
@@ -23,6 +33,8 @@ public class SocketPool {
   public SocketPool() {
     SocketFactory factory = new SocketFactory();
     GenericKeyedObjectPoolConfig<Socket> config = new GenericKeyedObjectPoolConfig();
+    config.setTestOnBorrow( true );
+    config.setTestOnReturn( true );
     pool = new GenericKeyedObjectPool<NodeAddress, Socket>( factory, config );
   }
 
@@ -66,7 +78,8 @@ public class SocketPool {
 
     @Override
     public boolean validateObject( NodeAddress nodeAddress, PooledObject<Socket> pooledObject ) {
-      return true;
+      Socket socket = pooledObject.getObject();
+      return !socket.isClosed() && socket.isConnected();
     }
 
   }
