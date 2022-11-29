@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+import static com.infodesire.jvmcom.ConfigProperties.THREAD_COUNT;
+
 /**
  * The web app version of client / server
  *
@@ -19,7 +21,6 @@ public class WebAppServer {
   private static boolean isClientConnected = false;
   private static int port;
   private static ValueServer server;
-  private static final int THREAD_COUNT = Integer.parseInt( System.getProperty( "com.infodesire.jvmcom.threadCount", "10" ) );
   private static String host;
   private static int serverPort;
 

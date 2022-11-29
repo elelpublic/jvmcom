@@ -10,12 +10,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import static com.infodesire.jvmcom.ConfigProperties.LEAVE_TIMEOUT_MS;
 
 /**
  * A mesh node
@@ -174,7 +175,7 @@ public class Node {
     return reply == null ? "" : reply.toString();
   }
 
-  private void updateActiveMembers() {
+  protected void updateActiveMembers() {
     activeMembers = TreePSet.empty();
     if( hasJoined() ) {
       activeMembers = activeMembers.plus( myAddress );
@@ -314,6 +315,10 @@ public class Node {
 
   public boolean hasJoined() {
     return meshSocket != null;
+  }
+
+  public void finalize() {
+    leave( LEAVE_TIMEOUT_MS );
   }
 
 }

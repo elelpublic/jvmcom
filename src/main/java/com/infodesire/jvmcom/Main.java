@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.List;
 
+import static com.infodesire.jvmcom.ConfigProperties.THREAD_COUNT;
+
 
 /**
  * The command line version of server and client
@@ -32,8 +34,6 @@ public class Main {
   private static Logger logger = LoggerFactory.getLogger( "jvmcom" );
 
   private static Options options;
-
-  private static final int THREAD_COUNT = Integer.parseInt( System.getProperty( "com.infodesire.jvmcom.threadCount", "10" ) );
 
   public static void main( String... args ) throws IOException, ParseException, InterruptedException {
 

@@ -2,6 +2,7 @@ package com.infodesire.jvmcom.mesh;
 
 import com.infodesire.jvmcom.clientserver.LineBufferClient;
 import com.infodesire.jvmcom.pool.SocketPool;
+import org.omg.CORBA.TIMEOUT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +13,8 @@ import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import static com.infodesire.jvmcom.ConfigProperties.LEAVE_TIMEOUT_MS;
+
 /**
  * A mesh node with a command line interface
  *
@@ -21,8 +24,6 @@ public class CliNode extends Node implements Runnable {
   private static Logger logger = LoggerFactory.getLogger( "Mesh" );
 
   private final CompletableFuture<Void> background;
-
-  private long leaveTimeoutMs = Long.parseLong( System.getProperty( "com.infodesire.jvmcom.mesh.leaveTimeoutMs", "1000" ) );
 
   public CliNode( MeshConfig config, NodeAddress myAddress, SocketPool socketPool ) throws IOException {
     super( config, myAddress, socketPool );
@@ -42,8 +43,16 @@ public class CliNode extends Node implements Runnable {
     while( !shutDown ) {
       System.out.print( myAddress.getId() + " > " );
       try {
-        String input = in.readLine();
-        if( input != null ) {
+        String input = null;
+        try {
+          input = in.readLine();
+        }
+        catch( IOException ex ) {}
+        if( input == null ) {
+          leave( LEAVE_TIMEOUT_MS );
+          shutDown = true;
+        }
+        else {
           if( input.equals( "help" ) ) {
             usage();
           }
@@ -64,11 +73,15 @@ public class CliNode extends Node implements Runnable {
             printStatus();
           }
           else if( input.equals( "out" ) ) {
-            leave( leaveTimeoutMs );
+            leave( LEAVE_TIMEOUT_MS );
+            printStatus();
+          }
+          else if( input.equals( "up" ) ) {
+            updateActiveMembers();
             printStatus();
           }
           else if( input.equals( "quit" ) ) {
-            leave( leaveTimeoutMs );
+            leave( LEAVE_TIMEOUT_MS );
             printStatus();
             shutDown = true;
           }
@@ -77,7 +90,7 @@ public class CliNode extends Node implements Runnable {
           }
         }
       }
-      catch( IOException ex ) {
+      catch( Exception ex ) {
         ex.printStackTrace();
       }
     }
@@ -136,6 +149,7 @@ public class CliNode extends Node implements Runnable {
     p( "ls ................ list nodes and show status" );
     p( "in ................ join the mesh" );
     p( "out ............... leave the mesh" );
+    p( "up ................ update mesh status (ping all nodes)" );
     p( "ping id ........... ping node" );
     p( "quit .............. quit CLI" );
     p( "" );
