@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -43,7 +44,7 @@ public class Node {
    * Join the mesh
    *
    */
-  public void join() throws IOException {
+  public void in() throws IOException {
 
     if( meshSocket != null ) {
       throw new RuntimeException( "Already joined." );
@@ -57,10 +58,10 @@ public class Node {
       if( !nodeAddress.equals( myAddress ) ) {
         try {
           LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
-          notifyJoin( client );
+          notifyIn( client );
         }
         catch( Exception ex ) {
-          Mesh.logger.error( "Error sending join request to " + nodeAddress, ex );
+          Mesh.logger.error( "Error sending in request to " + nodeAddress, ex );
           lostNodes.add( nodeAddress );
         }
       }
@@ -97,7 +98,7 @@ public class Node {
    * @param timeoutMs Number of ms to wait for orderly leave
    *
    */
-  public void leave( long timeoutMs ) {
+  public void out( long timeoutMs ) {
 
     updateActiveMembers();
     Set<NodeAddress> lostNodes = new HashSet<>();
@@ -105,10 +106,10 @@ public class Node {
       if( !nodeAddress.equals( myAddress ) ) {
         try {
           LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
-          notifyLeave( client );
+          notifyOut( client );
         }
         catch( Exception ex ) {
-          Mesh.logger.error( "Error sending leave request to " + nodeAddress, ex );
+          Mesh.logger.error( "Error sending out request to " + nodeAddress, ex );
           lostNodes.add( nodeAddress );
         }
       }
@@ -135,8 +136,8 @@ public class Node {
    * @throws IOException when node could not be notified for network reasons
    *
    */
-  public void notifyJoin( LineBufferClient client ) throws IOException {
-    client.send( "join " + myAddress.getId() );
+  public void notifyIn( LineBufferClient client ) throws IOException {
+    client.send( "in " + myAddress.getId() );
   }
 
   /**
@@ -146,8 +147,8 @@ public class Node {
    * @throws IOException when node could not be notified for network reasons
    *
    */
-  public void notifyLeave( LineBufferClient client ) throws IOException {
-    client.send( "leave " + myAddress.getId() );
+  public void notifyOut( LineBufferClient client ) throws IOException {
+    client.send( "out " + myAddress.getId() );
   }
 
   /**
@@ -175,9 +176,48 @@ public class Node {
     return reply == null ? "" : reply.toString();
   }
 
+  /**
+   * Send direct request to another node
+   *
+   * @param client Client connected to the node to sent message to
+   * @param message Message to be sent
+   * @return The id string returned by the target node (should be the id of that node)
+   * @throws IOException when node could not be notified for network reasons
+   *
+   */
+  public String dm( LineBufferClient client, String message ) throws IOException {
+    StringBuffer reply = client.send( "dm " + message );
+    return reply == null ? "" : reply.toString();
+  }
+
+  /**
+   * Send broadcast message request to all active nodes
+   *
+   * @param message Message to be sent
+   * @return The id string returned by the target node (should be the id of that node)
+   * @throws IOException when node could not be notified for network reasons
+   *
+   */
+  public String cast( String message ) throws IOException {
+    StringJoiner replies = new StringJoiner( "\n" );
+    for( NodeAddress nodeAddress : activeMembers ) {
+      if( !nodeAddress.equals( myAddress ) ) {
+        try {
+          LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
+          StringBuffer reply = client.send( "cast " + message );
+          replies.add( nodeAddress.getId() + ": " + ( reply == null ? "" : reply.toString() ) );
+        }
+        catch( Exception ex ) {
+          ex.printStackTrace();
+        }
+      }
+    }
+    return replies.toString();
+  }
+
   protected void updateActiveMembers() {
     activeMembers = TreePSet.empty();
-    if( hasJoined() ) {
+    if( isIn() ) {
       activeMembers = activeMembers.plus( myAddress );
     }
     for( NodeAddress nodeAddress : config.getMembers().values() ) {
@@ -219,7 +259,7 @@ public class Node {
    *
    */
   public void shutDown( long timeoutMs ) {
-    leave( timeoutMs );
+    out( timeoutMs );
   }
 
   /**
@@ -248,11 +288,17 @@ public class Node {
         else if( line.equals( "active" ) ) {
           return handleActive();
         }
-        else if( line.startsWith( "join" ) ) {
-          return handleJoin( line.substring( 5 ) );
+        else if( line.startsWith( "in " ) ) {
+          return handleIn( line.substring( 3 ) );
         }
-        else if( line.startsWith( "leave" ) ) {
-          return handleLeave( line.substring( 6 ) );
+        else if( line.startsWith( "out " ) ) {
+          return handleOut( line.substring( 4 ) );
+        }
+        else if( line.startsWith( "dm " ) ) {
+          return handleDm( line.substring( 3 ) );
+        }
+        else if( line.startsWith( "cast " ) ) {
+          return handleCast( line.substring( 5 ) );
         }
         else return new HandlerReply( MeshError.UNKNOWN_COMMAND );
       }
@@ -264,7 +310,31 @@ public class Node {
 
   }
 
-  private HandlerReply handleJoin( String nodeId ) {
+  /**
+   * Handle direct message
+   *
+   * @param message Message
+   * @return Reply
+   */
+  private HandlerReply handleDm( String message ) {
+    logger.info( "Received dm: " + message );
+    // TODO pluggable handler here
+    return new HandlerReply( "OK" );
+  }
+
+  /**
+   * Handle broadcast message
+   *
+   * @param message Message
+   * @return Reply
+   */
+  private HandlerReply handleCast( String message ) {
+    logger.info( "Received cast: " + message );
+    // TODO pluggable handler here
+    return new HandlerReply( "OK" );
+  }
+
+  private HandlerReply handleIn( String nodeId ) {
     NodeAddress nodeAddress = config.getMembers().get( nodeId );
     if( nodeAddress != null ) {
       activeMembers = activeMembers.plus( nodeAddress );
@@ -275,7 +345,7 @@ public class Node {
     }
   }
 
-  private HandlerReply handleLeave( String nodeId ) {
+  private HandlerReply handleOut( String nodeId ) {
     NodeAddress nodeAddress = config.getMembers().get( nodeId );
     if( nodeAddress != null ) {
       activeMembers = activeMembers.minus( nodeAddress );
@@ -313,12 +383,12 @@ public class Node {
 
   }
 
-  public boolean hasJoined() {
+  public boolean isIn() {
     return meshSocket != null;
   }
 
   public void finalize() {
-    leave( LEAVE_TIMEOUT_MS );
+    out( LEAVE_TIMEOUT_MS );
   }
 
 }

@@ -61,8 +61,8 @@ public class NodeTest {
     Node node1 = new Node( config, config.getMembers().get( "node1" ), socketPool );
     Node node2 = new Node( config, config.getMembers().get( "node2" ), socketPool );
 
-    node1.join();
-    node2.join();
+    node1.in();
+    node2.in();
 
     assertEquals( "node2", node1.ping( new LineBufferClient( socketPool.getSocket( node2.getAddress() ) ) ) );
     assertEquals( "node1", node2.ping( new LineBufferClient( socketPool.getSocket( node1.getAddress() ) ) ) );
@@ -79,21 +79,21 @@ public class NodeTest {
     Node node1 = new Node( config, config.getMembers().get( "node1" ), socketPool );
     Node node2 = new Node( config, config.getMembers().get( "node2" ), socketPool );
 
-    assertFalse( node1.hasJoined() );
-    assertFalse( node2.hasJoined() );
+    assertFalse( node1.isIn() );
+    assertFalse( node2.isIn() );
 
-    node1.join();
+    node1.in();
 
-    assertTrue( node1.hasJoined() );
-    assertFalse( node2.hasJoined() );
+    assertTrue( node1.isIn() );
+    assertFalse( node2.isIn() );
 
     assertEquals( 1, node1.getActiveMembers().size() );
     assertEquals( node1.getAddress(), node1.getActiveMembers().iterator().next() );
 
-    node2.join();
+    node2.in();
 
-    assertTrue( node1.hasJoined() );
-    assertTrue( node2.hasJoined() );
+    assertTrue( node1.isIn() );
+    assertTrue( node2.isIn() );
 
     assertEquals( 2, node1.getActiveMembers().size() );
 
@@ -112,7 +112,7 @@ public class NodeTest {
     node2.shutDown( 1000 );
 
     Node node3 = new Node( config, config.getMembers().get( "node3" ), socketPool );
-    node3.join();
+    node3.in();
 
     assertEquals( 1, node3.getActiveMembers().size() );
     assertTrue( node3.getActiveMembers().contains( node3.getAddress() ) );
