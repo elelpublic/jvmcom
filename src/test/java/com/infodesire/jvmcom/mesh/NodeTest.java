@@ -14,8 +14,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -55,7 +60,7 @@ public class NodeTest {
   public void tearDown() {
   }
 
-  @Test
+  @Test( timeout = 2000 )
   public void testPing() throws Exception {
 
     Node node1 = new Node( config, config.getMembers().get( "node1" ), socketPool );
@@ -73,7 +78,7 @@ public class NodeTest {
   }
 
 
-  @Test
+  @Test( timeout = 2000 )
   public void testJoinLeave() throws IOException {
 
     Node node1 = new Node( config, config.getMembers().get( "node1" ), socketPool );
