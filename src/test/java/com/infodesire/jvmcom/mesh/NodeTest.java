@@ -14,13 +14,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.Properties;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static junit.framework.TestCase.assertTrue;
-import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -28,6 +23,8 @@ public class NodeTest {
 
   private MeshConfig config;
   private SocketPool socketPool;
+  private Node node1, node2, node3;
+  private Mesh mesh;
 
   @Before
   public void setUp() throws Exception {
@@ -54,6 +51,12 @@ public class NodeTest {
 
     socketPool = new SocketPool();
 
+    mesh = new Mesh( config, socketPool );
+
+    node1 = mesh.get( "node1" );
+    node2 = mesh.get( "node2" );
+    node3 = mesh.get( "node3" );
+
   }
 
   @After
@@ -62,9 +65,6 @@ public class NodeTest {
 
   @Test( timeout = 2000 )
   public void testPing() throws Exception {
-
-    Node node1 = new Node( config, config.getMembers().get( "node1" ), socketPool );
-    Node node2 = new Node( config, config.getMembers().get( "node2" ), socketPool );
 
     node1.in();
     node2.in();
@@ -80,9 +80,6 @@ public class NodeTest {
 
   @Test( timeout = 2000 )
   public void testJoinLeave() throws IOException {
-
-    Node node1 = new Node( config, config.getMembers().get( "node1" ), socketPool );
-    Node node2 = new Node( config, config.getMembers().get( "node2" ), socketPool );
 
     assertFalse( node1.isIn() );
     assertFalse( node2.isIn() );
@@ -116,13 +113,24 @@ public class NodeTest {
 
     node2.shutDown( 1000 );
 
-    Node node3 = new Node( config, config.getMembers().get( "node3" ), socketPool );
     node3.in();
 
     assertEquals( 1, node3.getActiveMembers().size() );
     assertTrue( node3.getActiveMembers().contains( node3.getAddress() ) );
 
     node3.shutDown( 1000 );
+
+  }
+
+
+  @Test( timeout = 2000 )
+  public void testMessages() throws Exception {
+
+    node1.in();
+    node2.in();
+    node3.in();
+
+    node1.dm( new LineBufferClient( socketPool.getSocket( node2.getAddress() ) ), "hi" );
 
   }
 

@@ -1,6 +1,7 @@
 package com.infodesire.jvmcom;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
@@ -11,7 +12,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -163,6 +163,8 @@ public class SocketManager {
       this.id = id;
       this.socket = socket;
       this.worker = worker;
+      InetSocketAddress inetSocketAddress = (InetSocketAddress) socket.getRemoteSocketAddress();
+      worker.setSender( inetSocketAddress );
     }
 
     @Override

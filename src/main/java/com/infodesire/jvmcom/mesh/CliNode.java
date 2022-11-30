@@ -22,8 +22,8 @@ public class CliNode extends Node implements Runnable {
 
   private final CompletableFuture<Void> background;
 
-  public CliNode( MeshConfig config, NodeAddress myAddress, SocketPool socketPool ) throws IOException {
-    super( config, myAddress, socketPool );
+  public CliNode( Mesh mesh, NodeAddress myAddress, SocketPool socketPool ) throws IOException {
+    super( mesh, myAddress, socketPool );
 
     background = CompletableFuture.runAsync( this );
 

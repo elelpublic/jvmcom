@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +52,10 @@ public class SocketManagerTest {
     int linecounter = 0;
     assertEquals( 3, log.size() );
     assertEquals( "welcome", log.get( linecounter++ ) );
-    assertEquals( "request:HELO", log.get( linecounter++ ) );
+    String reply = log.get( linecounter++ );
+    assertTrue( reply.startsWith( "request from " ) );
+    assertTrue( reply.endsWith( ":HELO" ) );
+
     assertEquals( "reply:OK", log.get( linecounter ) );
 
   }
@@ -118,6 +122,8 @@ public class SocketManagerTest {
 
   class Worker implements ServerWorker {
     private boolean stopRequest = false;
+    private String sender;
+
     public void accept( Socket socket ) {
       work( socket );
     }
@@ -134,7 +140,7 @@ public class SocketManagerTest {
           String line = null;
           try {
             line = reader.readLine();
-            log( "request:" + line );
+            log( "request from " + sender + ":" + line );
           }
           catch( IOException ex ) {}
           if( line == null ) {
@@ -147,6 +153,11 @@ public class SocketManagerTest {
       catch( IOException ex ) {
         ex.printStackTrace();
       }
+    }
+
+    @Override
+    public void setSender( InetSocketAddress sender ) {
+      this.sender = sender.toString();
     }
 
     @Override

@@ -10,14 +10,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Queue;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.infodesire.jvmcom.ConfigProperties.LEAVE_TIMEOUT_MS;
+import static com.infodesire.jvmcom.mesh.MessageType.BROADCAST;
+import static com.infodesire.jvmcom.mesh.MessageType.DM;
 
 /**
  * A mesh node
@@ -28,13 +33,17 @@ public class Node {
   private static Logger logger = LoggerFactory.getLogger( "Mesh" );
 
   protected final MeshConfig config;
-  protected final NodeAddress myAddress;
-  protected final SocketPool socketPool;
-  protected PSortedSet<NodeAddress> activeMembers = TreePSet.empty();
-  protected MeshSocket meshSocket;
+  final NodeAddress myAddress;
+  final SocketPool socketPool;
+  protected final Mesh mesh;
+  PSortedSet<NodeAddress> activeMembers = TreePSet.empty();
+  private MeshSocket meshSocket;
+  private Queue<Message> dms = new LinkedBlockingQueue<>();
+  protected Queue<Message> broadcasts = new LinkedBlockingQueue<>();
 
-  public Node( MeshConfig config, NodeAddress myAddress, SocketPool socketPool ) {
-    this.config = config;
+  public Node( Mesh mesh, NodeAddress myAddress, SocketPool socketPool ) {
+    this.mesh = mesh;
+    this.config = mesh.getConfig();
     this.myAddress = myAddress;
     this.socketPool = socketPool;
     logger.info( "Create mesh node on " + myAddress );
@@ -50,7 +59,7 @@ public class Node {
       throw new RuntimeException( "Already joined." );
     }
 
-    meshSocket = new MeshSocket( myAddress, new HandlerFactory() );
+    meshSocket = new MeshSocket( myAddress, new HandlerFactory( mesh ) );
     
     updateActiveMembers();
     Set<NodeAddress> lostNodes = new HashSet<>();
@@ -267,9 +276,15 @@ public class Node {
    */
   class HandlerFactory implements Supplier<LineBufferHandler> {
 
+    private final Mesh mesh;
+
+    public HandlerFactory( Mesh mesh ) {
+      this.mesh = mesh;
+    }
+
     @Override
     public LineBufferHandler get() {
-      return new RequestHandler();
+      return new RequestHandler( mesh );
     }
 
   }
@@ -278,6 +293,18 @@ public class Node {
    * Handles incoming meshing requests
    */
   class RequestHandler implements LineBufferHandler {
+
+    private final Mesh mesh;
+    private InetSocketAddress senderAddress;
+
+    public RequestHandler( Mesh mesh ) {
+      this.mesh = mesh;
+    }
+
+    @Override
+    public void setSender( InetSocketAddress senderAddress ) {
+      this.senderAddress = senderAddress;
+    }
 
     @Override
     public HandlerReply process( String line ) {
@@ -295,10 +322,10 @@ public class Node {
           return handleOut( line.substring( 4 ) );
         }
         else if( line.startsWith( "dm " ) ) {
-          return handleDm( line.substring( 3 ) );
+          return handleDm( "" + senderAddress, line.substring( 3 ) );
         }
         else if( line.startsWith( "cast " ) ) {
-          return handleCast( line.substring( 5 ) );
+          return handleCast( "" + senderAddress, line.substring( 5 ) );
         }
         else return new HandlerReply( MeshError.UNKNOWN_COMMAND );
       }
@@ -313,24 +340,28 @@ public class Node {
   /**
    * Handle direct message
    *
+   * @param sender Name of sender
    * @param message Message
    * @return Reply
    */
-  private HandlerReply handleDm( String message ) {
-    logger.info( "Received dm: " + message );
-    // TODO pluggable handler here
+  private HandlerReply handleDm( String sender, String message ) {
+    Message messageObject = new Message( DM, sender, message );
+    logger.info( "Received: " + messageObject );
+    dms.offer( new Message( DM, sender, message ) );
     return new HandlerReply( "OK" );
   }
 
   /**
    * Handle broadcast message
    *
+   * @param sender Name of sender
    * @param message Message
    * @return Reply
    */
-  private HandlerReply handleCast( String message ) {
-    logger.info( "Received cast: " + message );
-    // TODO pluggable handler here
+  private HandlerReply handleCast( String sender, String message ) {
+    Message messageObject = new Message( BROADCAST, sender, message );
+    logger.info( "Received: " + messageObject );
+    broadcasts.offer( messageObject );
     return new HandlerReply( "OK" );
   }
 

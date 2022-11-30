@@ -13,6 +13,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.function.Supplier;
@@ -38,6 +40,7 @@ public class LineBufferServer {
    * calling start using getPort().
    *
    * @param config Server settings and network configuration
+   * @param handlerFactory Creates handlers for incoming socket connections
    *
    */
   public LineBufferServer( ServerConfig config,
@@ -116,12 +119,19 @@ public class LineBufferServer {
       this.handler = lineBufferHandler;
     }
 
+    public void setSender( InetSocketAddress senderAddress ) {
+      handler.setSender( senderAddress );
+    }
+
     @Override
     public void accept( Socket socket ) {
 
       if( threadName != null ) {
         Thread.currentThread().setName( threadName );
       }
+
+      InetAddress senderAddress = socket.getInetAddress();
+
       logger.info( "Accepted new connection." );
       InputStream in = null;
       OutputStream out = null;
