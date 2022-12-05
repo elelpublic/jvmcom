@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Collection;
 import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -11,7 +12,7 @@ import java.util.TreeMap;
 public class MeshConfig {
 
   public String name;
-  private SortedMap<String, NodeAddress> members = new TreeMap<>();
+  private SortedMap<String, NodeConfig> nodes = new TreeMap<>();
 
   public static MeshConfig loadFromProperties( Properties props ) {
 
@@ -25,7 +26,15 @@ public class MeshConfig {
       int port = Integer.parseInt( props.getProperty( "nodes." + nodeName + ".port", "0" ) );
       InetSocketAddress inetAddress = new InetSocketAddress( hostName, port );
       NodeAddress nodeAddress = new NodeAddress( nodeName, inetAddress );
-      config.members.put( nodeName, nodeAddress );
+      NodeConfig nodeConfig = new NodeConfig( nodeAddress );
+      String serviceNames = props.getProperty( "nodes." + nodeName + ".services", "" );
+      for( String serviceName : serviceNames.split( "," ) ) {
+        serviceName = serviceName.trim();
+        int servicePort = Integer.parseInt( props.getProperty( "nodes." + nodeName + ".service." + serviceName + ".port", "0" ) );
+        ServiceConfig serviceConfig = new ServiceConfig( serviceName, servicePort );
+        nodeConfig.addService( serviceConfig );
+      }
+      config.nodes.put( nodeName, nodeConfig );
     }
 
     return config;
@@ -38,8 +47,21 @@ public class MeshConfig {
     return loadFromProperties( properties );
   }
 
-  public SortedMap<String, NodeAddress> getMembers() {
-    return members;
+//  public SortedMap<String, NodeConfig> getNodes() {
+//    return nodes;
+//  }
+
+  /**
+   * @param name Name of node
+   * @return Configuration of node
+   *
+   */
+  public NodeConfig getNodeConfig( String name ) {
+    return nodes.get( name );
+  }
+
+  public Collection<NodeConfig> getNodes() {
+    return nodes.values();
   }
 
 }

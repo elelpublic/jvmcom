@@ -8,19 +8,19 @@ import java.net.InetSocketAddress;
  */
 public class NodeAddress implements Comparable<NodeAddress> {
 
-  private final String id;
+  private final String name;
   private final InetSocketAddress inetSocketAddress;
   private final String addressString;
 
   /**
    * Create address
    *
-   * @param id Unique id of node within mesh
+   * @param name Unique name of node within mesh
    * @param inetSocketAddress Socket address
    *
    */
-  public NodeAddress( String id, InetSocketAddress inetSocketAddress ) {
-    this.id = id;
+  public NodeAddress( String name, InetSocketAddress inetSocketAddress ) {
+    this.name = name;
     this.inetSocketAddress = inetSocketAddress;
     addressString = inetSocketAddress.getHostString() + ":"
       + inetSocketAddress.getPort();
@@ -32,18 +32,18 @@ public class NodeAddress implements Comparable<NodeAddress> {
 
   @Override
   public int compareTo( NodeAddress o ) {
-    return id.compareTo( o.id );
+    return name.compareTo( o.name );
   }
 
   public String toString() {
-    return id + "(" + addressString + ")";
+    return name + "(" + addressString + ")";
   }
 
   /**
-   * @return Unique id of node within mesh
+   * @return Unique name of node within mesh
    */
-  public String getId() {
-    return id;
+  public String getName() {
+    return name;
   }
 
 }

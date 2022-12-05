@@ -5,6 +5,7 @@ import com.infodesire.jvmcom.mesh.CliNode;
 import com.infodesire.jvmcom.mesh.Mesh;
 import com.infodesire.jvmcom.mesh.MeshConfig;
 import com.infodesire.jvmcom.mesh.NodeAddress;
+import com.infodesire.jvmcom.mesh.NodeConfig;
 import com.infodesire.jvmcom.pool.SocketPool;
 import com.infodesire.jvmcom.services.value.ValueServer;
 import org.apache.commons.cli.CommandLine;
@@ -97,14 +98,14 @@ public class Main {
       String configFile = cmd.getOptionValue( "c" );
       String nodeId = cmd.getOptionValue( "n" );
       MeshConfig config = MeshConfig.loadFromFile( new File( configFile ) );
-      NodeAddress myAddress = config.getMembers().get( nodeId );
-      if( myAddress == null ) {
+      NodeConfig nodeConfig = config.getNodeConfig( nodeId );
+      if( nodeConfig == null ) {
         showUsage( "No entry found for node id " + nodeId + " in node configuration " + configFile );
         Runtime.getRuntime().halt( 1 );
       }
       SocketPool socketPool = new SocketPool();
       Mesh mesh = new Mesh( config, socketPool );
-      new CliNode( mesh, myAddress, socketPool ).waitForShutDown();
+      new CliNode( mesh, nodeConfig, socketPool ).waitForShutDown();
     }
     else {
       showUsage( "Unknown command: " + command );

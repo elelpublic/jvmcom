@@ -22,8 +22,8 @@ public class CliNode extends Node implements Runnable {
 
   private final CompletableFuture<Void> background;
 
-  public CliNode( Mesh mesh, NodeAddress myAddress, SocketPool socketPool ) throws IOException {
-    super( mesh, myAddress, socketPool );
+  public CliNode( Mesh mesh, NodeConfig config, SocketPool socketPool ) throws IOException {
+    super( mesh, config, socketPool );
 
     background = CompletableFuture.runAsync( this );
 
@@ -38,7 +38,7 @@ public class CliNode extends Node implements Runnable {
     p( "Enter 'help' for a list of commands." );
     boolean shutDown = false;
     while( !shutDown ) {
-      System.out.print( myAddress.getId() + " > " );
+      System.out.print( myAddress.getName() + " > " );
       try {
         String input = null;
         try {
@@ -46,7 +46,7 @@ public class CliNode extends Node implements Runnable {
         }
         catch( IOException ex ) {}
         if( input == null ) {
-          out( LEAVE_TIMEOUT_MS );
+          leave( LEAVE_TIMEOUT_MS );
           shutDown = true;
         }
         else {
@@ -57,15 +57,15 @@ public class CliNode extends Node implements Runnable {
             printStatus();
           }
           else if( input.startsWith( "ping " ) ) {
-            String nodeId = input.substring( 5 );
-            ping( nodeId );
+            String nodeName = input.substring( 5 );
+            ping( nodeName );
           }
           else if( input.startsWith( "dm " ) ) {
-            String nodeId = input.substring( 3 );
-            int sep = nodeId.indexOf( " " );
-            String msg = nodeId.substring( sep + 1 );
-            nodeId = nodeId.substring( 0, sep );
-            dm( nodeId, msg );
+            String nodeName = input.substring( 3 );
+            int sep = nodeName.indexOf( " " );
+            String msg = nodeName.substring( sep + 1 );
+            nodeName = nodeName.substring( 0, sep );
+            dm( nodeName, msg );
           }
           else if( input.startsWith( "cast " ) ) {
             String message = input.substring( 5 );
@@ -73,17 +73,22 @@ public class CliNode extends Node implements Runnable {
             p( "Replies:" );
             p( replies );
           }
-          else if( input.equals( "in" ) ) {
+          else if( input.equals( "in" ) || input.equals( "join" ) ) {
             try {
-              in();
+              join();
             }
             catch( IOException ex ) {
               logger.error( "Error joining mesh.", ex );
             }
             printStatus();
           }
-          else if( input.equals( "out" ) ) {
-            out( LEAVE_TIMEOUT_MS );
+          else if( input.startsWith( "services " ) ) {
+            String nodeName = input.substring( 9 );
+            String services = services( nodeName );
+            p( services );
+          }
+          else if( input.equals( "out" ) || input.equals( "leave" ) ) {
+            leave( LEAVE_TIMEOUT_MS );
             printStatus();
           }
           else if( input.equals( "up" ) ) {
@@ -91,7 +96,7 @@ public class CliNode extends Node implements Runnable {
             printStatus();
           }
           else if( input.equals( "quit" ) ) {
-            out( LEAVE_TIMEOUT_MS );
+            leave( LEAVE_TIMEOUT_MS );
             printStatus();
             shutDown = true;
           }
@@ -107,10 +112,22 @@ public class CliNode extends Node implements Runnable {
     p( "Bye." );
   }
 
-  private void ping( String nodeId ) {
+  private String services( String nodeName ) {
     try {
-      NodeAddress nodeAddress = config.getMembers().get( nodeId );
-      LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
+      NodeConfig nodeConfig = meshConfig.getNodeConfig( nodeName );
+      LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) );
+      return services( client );
+    }
+    catch( Exception ex ) {
+      ex.printStackTrace();
+    }
+    return nodeName;
+  }
+
+  private void ping( String nodeName ) {
+    try {
+      NodeConfig nodeConfig = meshConfig.getNodeConfig( nodeName );
+      LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) );
       String reply = ping( client );
       p( "Reply: " + reply );
 
@@ -120,10 +137,10 @@ public class CliNode extends Node implements Runnable {
     }
   }
 
-  private void dm( String nodeId, String message ) {
+  private void dm( String nodeName, String message ) {
     try {
-      NodeAddress nodeAddress = config.getMembers().get( nodeId );
-      LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
+      NodeConfig nodeConfig = meshConfig.getNodeConfig( nodeName );
+      LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) );
       String reply = dm( client, message );
       p( "Reply: " + reply );
     }
@@ -135,18 +152,18 @@ public class CliNode extends Node implements Runnable {
   private void printStatus() {
 
     p( "----------------------------------------------------------" );
-    p( "Mesh name    : " + config.name );
-    p( "Node name    : " + myAddress.getId() );
+    p( "Mesh name    : " + meshConfig.name );
+    p( "Node name    : " + myAddress.getName() );
     p( "Node address : " + myAddress.getInetSocketAddress() );
     p( "Node joined  : " + ( isIn() ? "yes" : "no" ) );
     p( "----------------------------------------------------------" );
 
-    for( NodeAddress nodeAddress : config.getMembers().values() ) {
-      String nodeStatus = isIn() ? activeMembers.contains( nodeAddress ) ? "in" : "out" : ( nodeAddress.equals( myAddress ) ? "out" : "???" );
-      if( myAddress.equals( nodeAddress ) ) {
+    for( NodeConfig nodeConfig : meshConfig.getNodes() ) {
+      String nodeStatus = isIn() ? activeMembers.contains( nodeConfig ) ? "in" : "out" : ( nodeConfig.equals( myAddress ) ? "out" : "???" );
+      if( myAddress.equals( nodeConfig ) ) {
         nodeStatus += " (this node)";
       }
-      p( "Node '" + nodeAddress.getId() + "' " + nodeAddress.getInetSocketAddress() + " " + nodeStatus );
+      p( "Node '" + nodeConfig.getAddress().getName() + "' " + nodeConfig.getAddress().getInetSocketAddress() + " " + nodeStatus );
     }
     p( "----------------------------------------------------------" );
 
@@ -169,12 +186,13 @@ public class CliNode extends Node implements Runnable {
     p( "Commands:" );
     p( "" );
     p( "ls ................ list nodes and show status" );
-    p( "in ................ join the mesh" );
-    p( "out ............... leave the mesh" );
+    p( "in / join ......... join the mesh" );
+    p( "out / leave ....... leave the mesh" );
     p( "up ................ update mesh status (ping all nodes)" );
     p( "ping id ........... ping node" );
     p( "dm id mesg ........ send a direct message to a node" );
     p( "cast mesg ......... broadcast a message to all active nodes" );
+    p( "services id ....... show services of a node" );
     p( "quit .............. quit CLI" );
     p( "" );
   }

@@ -3,7 +3,13 @@ package com.infodesire.jvmcom.mesh;
 import com.infodesire.jvmcom.clientserver.HandlerReply;
 import com.infodesire.jvmcom.clientserver.LineBufferClient;
 import com.infodesire.jvmcom.clientserver.LineBufferHandler;
+import com.infodesire.jvmcom.message.LogMessageHandler;
+import com.infodesire.jvmcom.message.Message;
+import com.infodesire.jvmcom.message.MessageHandler;
 import com.infodesire.jvmcom.pool.SocketPool;
+import com.infodesire.jvmcom.services.Service;
+import org.pcollections.HashTreePMap;
+import org.pcollections.PMap;
 import org.pcollections.PSortedSet;
 import org.pcollections.TreePSet;
 import org.slf4j.Logger;
@@ -21,8 +27,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.infodesire.jvmcom.ConfigProperties.LEAVE_TIMEOUT_MS;
-import static com.infodesire.jvmcom.mesh.MessageType.BROADCAST;
-import static com.infodesire.jvmcom.mesh.MessageType.DM;
+import static com.infodesire.jvmcom.message.MessageType.BROADCAST;
+import static com.infodesire.jvmcom.message.MessageType.DM;
 
 /**
  * A mesh node
@@ -32,19 +38,25 @@ public class Node {
 
   private static Logger logger = LoggerFactory.getLogger( "Mesh" );
 
-  protected final MeshConfig config;
-  final NodeAddress myAddress;
+  protected final MeshConfig meshConfig;
   final SocketPool socketPool;
   protected final Mesh mesh;
-  PSortedSet<NodeAddress> activeMembers = TreePSet.empty();
+  protected final NodeConfig config;
+  protected final NodeAddress myAddress;
+  private final String myName;
+  protected PSortedSet<NodeAddress> activeMembers = TreePSet.empty();
   private MeshSocket meshSocket;
   private Queue<Message> dms = new LinkedBlockingQueue<>();
   protected Queue<Message> broadcasts = new LinkedBlockingQueue<>();
+  private MessageHandler messageHandler = new LogMessageHandler();
+  private PMap<String, Service> services = HashTreePMap.empty();
 
-  public Node( Mesh mesh, NodeAddress myAddress, SocketPool socketPool ) {
+  public Node( Mesh mesh, NodeConfig config, SocketPool socketPool ) {
     this.mesh = mesh;
-    this.config = mesh.getConfig();
-    this.myAddress = myAddress;
+    this.meshConfig = mesh.getConfig();
+    this.config = config;
+    myAddress = config.getAddress();
+    myName = myAddress.getName();
     this.socketPool = socketPool;
     logger.info( "Create mesh node on " + myAddress );
   }
@@ -53,7 +65,7 @@ public class Node {
    * Join the mesh
    *
    */
-  public void in() throws IOException {
+  public void join() throws IOException {
 
     if( meshSocket != null ) {
       throw new RuntimeException( "Already joined." );
@@ -67,7 +79,7 @@ public class Node {
       if( !nodeAddress.equals( myAddress ) ) {
         try {
           LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
-          notifyIn( client );
+          notifyJoin( client );
         }
         catch( Exception ex ) {
           Mesh.logger.error( "Error sending in request to " + nodeAddress, ex );
@@ -107,7 +119,7 @@ public class Node {
    * @param timeoutMs Number of ms to wait for orderly leave
    *
    */
-  public void out( long timeoutMs ) {
+  public void leave( long timeoutMs ) {
 
     updateActiveMembers();
     Set<NodeAddress> lostNodes = new HashSet<>();
@@ -115,7 +127,7 @@ public class Node {
       if( !nodeAddress.equals( myAddress ) ) {
         try {
           LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
-          notifyOut( client );
+          notifyLeave( client );
         }
         catch( Exception ex ) {
           Mesh.logger.error( "Error sending out request to " + nodeAddress, ex );
@@ -145,8 +157,8 @@ public class Node {
    * @throws IOException when node could not be notified for network reasons
    *
    */
-  public void notifyIn( LineBufferClient client ) throws IOException {
-    client.send( "in " + myAddress.getId() );
+  public void notifyJoin( LineBufferClient client ) throws IOException {
+    client.send( "join " + myName );
   }
 
   /**
@@ -156,8 +168,8 @@ public class Node {
    * @throws IOException when node could not be notified for network reasons
    *
    */
-  public void notifyOut( LineBufferClient client ) throws IOException {
-    client.send( "out " + myAddress.getId() );
+  public void notifyLeave( LineBufferClient client ) throws IOException {
+    client.send( "leave " + myName );
   }
 
   /**
@@ -169,7 +181,7 @@ public class Node {
    *
    */
   public void notifyLost( LineBufferClient client, NodeAddress lostNode ) throws IOException {
-    client.send( "lost " + lostNode.getId() );
+    client.send( "lost " + lostNode.getName() );
   }
 
   /**
@@ -182,6 +194,19 @@ public class Node {
    */
   public String ping( LineBufferClient client ) throws IOException {
     StringBuffer reply = client.send( "ping" );
+    return reply == null ? "" : reply.toString();
+  }
+
+  /**
+   * Ask a node for its list if services
+   *
+   * @param client Client connected to the node to be asked
+   * @return List of spaces separated service:port entries showing the service name and port offered
+   * @throws IOException when node could not be notified for network reasons
+   *
+   */
+  public String services( LineBufferClient client ) throws IOException {
+    StringBuffer reply = client.send( "services" );
     return reply == null ? "" : reply.toString();
   }
 
@@ -214,7 +239,7 @@ public class Node {
         try {
           LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
           StringBuffer reply = client.send( "cast " + message );
-          replies.add( nodeAddress.getId() + ": " + ( reply == null ? "" : reply.toString() ) );
+          replies.add( nodeAddress.getName() + ": " + ( reply == null ? "" : reply.toString() ) );
         }
         catch( Exception ex ) {
           ex.printStackTrace();
@@ -229,13 +254,14 @@ public class Node {
     if( isIn() ) {
       activeMembers = activeMembers.plus( myAddress );
     }
-    for( NodeAddress nodeAddress : config.getMembers().values() ) {
+    for( NodeConfig nodeConfig : meshConfig.getNodes() ) {
+      NodeAddress nodeAddress = nodeConfig.getAddress();
       if( !nodeAddress.equals( myAddress ) ) {
         try {
           LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
           String replyId = ping( client );
           if( replyId != null ) {
-            if( !replyId.equals( nodeAddress.getId() ) ) {
+            if( !replyId.equals( nodeAddress.getName() ) ) {
               Mesh.logger.error( "Node " + nodeAddress + " replies with wrong id '" + replyId + "'. Will ignore this node." );
             }
             else {
@@ -268,7 +294,7 @@ public class Node {
    *
    */
   public void shutDown( long timeoutMs ) {
-    out( timeoutMs );
+    leave( timeoutMs );
   }
 
   /**
@@ -315,17 +341,20 @@ public class Node {
         else if( line.equals( "active" ) ) {
           return handleActive();
         }
-        else if( line.startsWith( "in " ) ) {
-          return handleIn( line.substring( 3 ) );
+        else if( line.startsWith( "join " ) ) {
+          return handleJoin( line.substring( 5 ) );
         }
-        else if( line.startsWith( "out " ) ) {
-          return handleOut( line.substring( 4 ) );
+        else if( line.startsWith( "leave " ) ) {
+          return handleLeave( line.substring( 6 ) );
         }
         else if( line.startsWith( "dm " ) ) {
           return handleDm( "" + senderAddress, line.substring( 3 ) );
         }
         else if( line.startsWith( "cast " ) ) {
           return handleCast( "" + senderAddress, line.substring( 5 ) );
+        }
+        else if( line.equals( "services" ) ) {
+          return handleServices();
         }
         else return new HandlerReply( MeshError.UNKNOWN_COMMAND );
       }
@@ -365,10 +394,10 @@ public class Node {
     return new HandlerReply( "OK" );
   }
 
-  private HandlerReply handleIn( String nodeId ) {
-    NodeAddress nodeAddress = config.getMembers().get( nodeId );
-    if( nodeAddress != null ) {
-      activeMembers = activeMembers.plus( nodeAddress );
+  private HandlerReply handleJoin( String nodeId ) {
+    NodeConfig nodeConfig = meshConfig.getNodeConfig( nodeId );
+    if( nodeConfig != null ) {
+      activeMembers = activeMembers.plus( nodeConfig.getAddress() );
       return handleActive();
     }
     else {
@@ -376,10 +405,10 @@ public class Node {
     }
   }
 
-  private HandlerReply handleOut( String nodeId ) {
-    NodeAddress nodeAddress = config.getMembers().get( nodeId );
-    if( nodeAddress != null ) {
-      activeMembers = activeMembers.minus( nodeAddress );
+  private HandlerReply handleLeave( String nodeName ) {
+    NodeConfig nodeConfig = meshConfig.getNodeConfig( nodeName );
+    if( nodeConfig != null ) {
+      activeMembers = activeMembers.minus( nodeConfig.getAddress() );
       return handleActive();
     }
     else {
@@ -394,7 +423,21 @@ public class Node {
    *
    */
   protected HandlerReply handlePing() {
-    return new HandlerReply( myAddress.getId() );
+    return new HandlerReply( myAddress.getName() );
+  }
+
+  /**
+   * Handle "ping" request
+   *
+   * @return Id of this node
+   *
+   */
+  protected HandlerReply handleServices() {
+    StringJoiner reply = new StringJoiner( " " );
+    for( Service service : services.values() ) {
+      reply.add( service.getName() + ":" + service.getPort() );
+    }
+    return new HandlerReply( myAddress.getName() );
   }
 
   /**
@@ -407,7 +450,7 @@ public class Node {
 
     String nodeList = activeMembers
       .stream()
-      .map( nodeAddress -> nodeAddress.getId() )
+      .map( nodeAddress -> nodeAddress.getName() )
       .collect( Collectors.joining( " " ) );
 
     return new HandlerReply( nodeList );
@@ -419,7 +462,15 @@ public class Node {
   }
 
   public void finalize() {
-    out( LEAVE_TIMEOUT_MS );
+    leave( LEAVE_TIMEOUT_MS );
+  }
+
+  public MessageHandler getMessageHandler() {
+    return messageHandler;
+  }
+
+  public void setMessageHandler( MessageHandler messageHandler ) {
+    this.messageHandler = messageHandler;
   }
 
 }

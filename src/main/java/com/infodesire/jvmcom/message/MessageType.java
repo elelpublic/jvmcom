@@ -1,4 +1,4 @@
-package com.infodesire.jvmcom.mesh;
+package com.infodesire.jvmcom.message;
 
 public enum MessageType {
 

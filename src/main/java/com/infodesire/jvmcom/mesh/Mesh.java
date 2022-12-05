@@ -29,15 +29,6 @@ public class Mesh {
   }
 
   /**
-   * @param nodeId Id of node
-   * @return Address of node or null if no such node is registered
-   *
-   */
-  public NodeAddress getAddress( String nodeId ) {
-    return config.getMembers().get( nodeId );
-  }
-
-  /**
    * Get node, create if new
    *
    * @param nodeId Id of node
@@ -45,13 +36,13 @@ public class Mesh {
    *
    */
   public Node get( String nodeId ) {
-    NodeAddress nodeAddress = getAddress( nodeId );
-    if( nodeAddress == null ) {
+    NodeConfig nodeConfig = config.getNodeConfig( nodeId );
+    if( nodeConfig == null ) {
       throw new RuntimeException( "No such node id is registered: " + nodeId );
     }
     Node node = nodes.get( nodeId );
     if( node == null ) {
-      node = new Node( this, nodeAddress, socketPool );
+      node = new Node( this, nodeConfig, socketPool );
       nodes.put( nodeId, node );
     }
     return node;

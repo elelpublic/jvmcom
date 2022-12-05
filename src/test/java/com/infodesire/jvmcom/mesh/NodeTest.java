@@ -66,8 +66,8 @@ public class NodeTest {
   @Test( timeout = 2000 )
   public void testPing() throws Exception {
 
-    node1.in();
-    node2.in();
+    node1.join();
+    node2.join();
 
     assertEquals( "node2", node1.ping( new LineBufferClient( socketPool.getSocket( node2.getAddress() ) ) ) );
     assertEquals( "node1", node2.ping( new LineBufferClient( socketPool.getSocket( node1.getAddress() ) ) ) );
@@ -84,7 +84,7 @@ public class NodeTest {
     assertFalse( node1.isIn() );
     assertFalse( node2.isIn() );
 
-    node1.in();
+    node1.join();
 
     assertTrue( node1.isIn() );
     assertFalse( node2.isIn() );
@@ -92,7 +92,7 @@ public class NodeTest {
     assertEquals( 1, node1.getActiveMembers().size() );
     assertEquals( node1.getAddress(), node1.getActiveMembers().iterator().next() );
 
-    node2.in();
+    node2.join();
 
     assertTrue( node1.isIn() );
     assertTrue( node2.isIn() );
@@ -113,7 +113,7 @@ public class NodeTest {
 
     node2.shutDown( 1000 );
 
-    node3.in();
+    node3.join();
 
     assertEquals( 1, node3.getActiveMembers().size() );
     assertTrue( node3.getActiveMembers().contains( node3.getAddress() ) );
@@ -126,9 +126,9 @@ public class NodeTest {
   @Test( timeout = 2000 )
   public void testMessages() throws Exception {
 
-    node1.in();
-    node2.in();
-    node3.in();
+    node1.join();
+    node2.join();
+    node3.join();
 
     node1.dm( new LineBufferClient( socketPool.getSocket( node2.getAddress() ) ), "hi" );
 
