@@ -1,22 +1,20 @@
 package com.infodesire.jvmcom.mesh;
 
-import com.infodesire.jvmcom.ServerConfig;
-
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Configuration of a mesh node
  *
  */
-public class NodeConfig {
+public class NodeConfig implements Comparable<NodeConfig> {
 
   private NodeAddress address;
 
   private Map<String, ServiceConfig> services = new HashMap<>();
+
+  private boolean autojoin = false;
 
   public NodeConfig( NodeAddress address ) {
     this.address = address;
@@ -40,6 +38,19 @@ public class NodeConfig {
 
   public void addService( ServiceConfig serviceConfig ) {
     services.put( serviceConfig.getName(), serviceConfig );
+  }
+
+  public boolean getAutojoin() {
+    return autojoin;
+  }
+
+  public void setAutojoin( boolean autojoin ) {
+    this.autojoin = autojoin;
+  }
+
+  @Override
+  public int compareTo( NodeConfig o ) {
+    return address.compareTo( o.address );
   }
 
 }

@@ -113,15 +113,21 @@ public class CliNode extends Node implements Runnable {
   }
 
   private String services( String nodeName ) {
-    try {
+    if( nodeName.equals( myName ) ) {
+      return handleServices().replyText;
+    }
+    else {
       NodeConfig nodeConfig = meshConfig.getNodeConfig( nodeName );
-      LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) );
-      return services( client );
+      try {
+        LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) );
+        return services( client );
+      }
+      catch( Exception ex ) {
+        p( "Error sending services request to " + nodeConfig.getAddress() );
+        ex.printStackTrace();
+      }
     }
-    catch( Exception ex ) {
-      ex.printStackTrace();
-    }
-    return nodeName;
+    return "";
   }
 
   private void ping( String nodeName ) {
@@ -159,8 +165,9 @@ public class CliNode extends Node implements Runnable {
     p( "----------------------------------------------------------" );
 
     for( NodeConfig nodeConfig : meshConfig.getNodes() ) {
-      String nodeStatus = isIn() ? activeMembers.contains( nodeConfig ) ? "in" : "out" : ( nodeConfig.equals( myAddress ) ? "out" : "???" );
-      if( myAddress.equals( nodeConfig ) ) {
+      String nodeStatus = isIn() ? activeMembers.contains( nodeConfig.getAddress() ) ? "in" : "out"
+        : ( nodeConfig.getAddress().equals( myAddress ) ? "out" : "???" );
+      if( myAddress.equals( nodeConfig.getAddress() ) ) {
         nodeStatus += " (this node)";
       }
       p( "Node '" + nodeConfig.getAddress().getName() + "' " + nodeConfig.getAddress().getInetSocketAddress() + " " + nodeStatus );

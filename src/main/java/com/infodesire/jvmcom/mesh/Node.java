@@ -43,7 +43,7 @@ public class Node {
   protected final Mesh mesh;
   protected final NodeConfig config;
   protected final NodeAddress myAddress;
-  private final String myName;
+  protected final String myName;
   protected PSortedSet<NodeAddress> activeMembers = TreePSet.empty();
   private MeshSocket meshSocket;
   private Queue<Message> dms = new LinkedBlockingQueue<>();
@@ -59,6 +59,14 @@ public class Node {
     myName = myAddress.getName();
     this.socketPool = socketPool;
     logger.info( "Create mesh node on " + myAddress );
+    if( config.getAutojoin() ) {
+      try {
+        join();
+      }
+      catch( IOException ex ) {
+        throw new RuntimeException( "Error on autojoin", ex );
+      }
+    }
   }
 
   /**

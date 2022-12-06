@@ -27,6 +27,7 @@ public class MeshConfig {
       InetSocketAddress inetAddress = new InetSocketAddress( hostName, port );
       NodeAddress nodeAddress = new NodeAddress( nodeName, inetAddress );
       NodeConfig nodeConfig = new NodeConfig( nodeAddress );
+      nodeConfig.setAutojoin( Boolean.parseBoolean( props.getProperty( "nodes." + nodeName + ".autojoin", "false" ) ) );
       String serviceNames = props.getProperty( "nodes." + nodeName + ".services", "" );
       for( String serviceName : serviceNames.split( "," ) ) {
         serviceName = serviceName.trim();
