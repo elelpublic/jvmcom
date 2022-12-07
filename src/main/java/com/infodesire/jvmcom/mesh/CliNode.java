@@ -35,7 +35,7 @@ public class CliNode extends Node implements Runnable {
     p( "----------------------------------------------------------" );
     p( "Mesh Node CLI." );
     printStatus();
-    p( "Enter 'help' for a list of commands." );
+    usage();
     boolean shutDown = false;
     while( !shutDown ) {
       System.out.print( myAddress.getName() + " > " );
@@ -192,14 +192,15 @@ public class CliNode extends Node implements Runnable {
     }
     p( "Commands:" );
     p( "" );
+    p( "help .............. show this list if commands" );
     p( "ls ................ list nodes and show status" );
     p( "in / join ......... join the mesh" );
     p( "out / leave ....... leave the mesh" );
     p( "up ................ update mesh status (ping all nodes)" );
-    p( "ping id ........... ping node" );
-    p( "dm id mesg ........ send a direct message to a node" );
+    p( "ping ID ........... ping node with ID" );
+    p( "dm id mesg ........ send a direct message to a node ID" );
     p( "cast mesg ......... broadcast a message to all active nodes" );
-    p( "services id ....... show services of a node" );
+    p( "services id ....... show services of node ID" );
     p( "quit .............. quit CLI" );
     p( "" );
   }
