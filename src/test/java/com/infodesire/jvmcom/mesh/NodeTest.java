@@ -130,7 +130,9 @@ public class NodeTest {
     node2.join();
     node3.join();
 
-    node1.dm( new LineBufferClient( socketPool.getSocket( node2.getAddress() ) ), "hi" );
+    assertEquals( "OK", node1.dm( new LineBufferClient( socketPool.getSocket( node2.getAddress() ) ), "hi" ) );
+
+    assertEquals( "node2: OK\nnode3: OK", node1.cast( "hello all" ) );
 
   }
 

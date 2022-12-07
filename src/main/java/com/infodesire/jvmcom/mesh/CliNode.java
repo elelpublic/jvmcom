@@ -56,8 +56,8 @@ public class CliNode extends Node implements Runnable {
           else if( input.equals( "ls" ) ) {
             printStatus();
           }
-          else if( input.startsWith( "ping " ) ) {
-            String nodeName = input.substring( 5 );
+          else if( input.startsWith( "ping" ) ) {
+            String nodeName = input.substring( 4 );
             ping( nodeName );
           }
           else if( input.startsWith( "dm " ) ) {
@@ -67,8 +67,8 @@ public class CliNode extends Node implements Runnable {
             nodeName = nodeName.substring( 0, sep );
             dm( nodeName, msg );
           }
-          else if( input.startsWith( "cast " ) ) {
-            String message = input.substring( 5 );
+          else if( input.startsWith( "cast" ) ) {
+            String message = input.substring( 4 );
             String replies = cast( message );
             p( "Replies:" );
             p( replies );
@@ -82,10 +82,9 @@ public class CliNode extends Node implements Runnable {
             }
             printStatus();
           }
-          else if( input.startsWith( "services " ) ) {
-            String nodeName = input.substring( 9 );
-            String services = services( nodeName );
-            p( services );
+          else if( input.startsWith( "services" ) ) {
+            String nodeName = input.substring( 8 );
+            services( nodeName );
           }
           else if( input.equals( "out" ) || input.equals( "leave" ) ) {
             leave( LEAVE_TIMEOUT_MS );
@@ -112,31 +111,45 @@ public class CliNode extends Node implements Runnable {
     p( "Bye." );
   }
 
-  private String services( String nodeName ) {
-    if( nodeName.equals( myName ) ) {
-      return handleServices().replyText;
-    }
-    else {
-      NodeConfig nodeConfig = meshConfig.getNodeConfig( nodeName );
+  private void services( String nodeName ) {
+    NodeConfig nodeConfig = getNodeConfig( nodeName );
+    if( nodeConfig != null ) {
       try {
         LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) );
-        return services( client );
+        p( "Reply: " + services( client ) );
       }
       catch( Exception ex ) {
         p( "Error sending services request to " + nodeConfig.getAddress() );
         ex.printStackTrace();
       }
     }
-    return "";
+  }
+
+  private NodeConfig getNodeConfig( String nodeName ) {
+    if( nodeName == null || nodeName.trim().length() == 0 ) {
+      usage( "Missing node name" );
+    }
+    else {
+      nodeName = nodeName.trim();
+      NodeConfig nodeConfig = meshConfig.getNodeConfig( nodeName );
+      if( nodeConfig == null ) {
+        usage( "Node '" + nodeName + "' not found." );
+      }
+      else {
+        return nodeConfig;
+      }
+    }
+    return null;
   }
 
   private void ping( String nodeName ) {
     try {
-      NodeConfig nodeConfig = meshConfig.getNodeConfig( nodeName );
-      LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) );
-      String reply = ping( client );
-      p( "Reply: " + reply );
-
+      NodeConfig nodeConfig = getNodeConfig( nodeName );
+      if( nodeConfig != null ) {
+        LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) );
+        String reply = ping( client );
+        p( "Reply: " + reply );
+      }
     }
     catch( Exception ex ) {
       ex.printStackTrace();

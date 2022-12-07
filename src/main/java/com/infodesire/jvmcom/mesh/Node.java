@@ -445,7 +445,7 @@ public class Node {
     for( Service service : services.values() ) {
       reply.add( service.getName() + ":" + service.getPort() );
     }
-    return new HandlerReply( myAddress.getName() );
+    return new HandlerReply( myAddress.getName() + ": " + reply );
   }
 
   /**
