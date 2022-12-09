@@ -19,6 +19,11 @@
             <pathelement location="lib/javax.servlet-api-${javax.servlet-api.version}.jar"/>
         </path>
 
+        <path id="junit.jars">
+            <pathelement location="lib/junit-${junit.version}.jar" />
+            <pathelement location="lib/hamcrest-${hamcrest.version}.jar" />
+        </path>
+
         <fileset dir="lib" id="thirdparty.jarfiles">
             <include name="commons-cli-${commons-cli.version}.jar"/>
             <include name="commons-lang3-${commons-lang3.version}.jar"/>
@@ -82,6 +87,7 @@
         >
             <src path="src/test/java"/>
             <classpath refid="thirdparty.jars"/>
+            <classpath refid="junit.jars"/>
             <classpath>
                 <pathelement path="target/classes"/>
             </classpath>
@@ -94,6 +100,7 @@
         >
             <src path="src/integration/java"/>
             <classpath refid="thirdparty.jars"/>
+            <classpath refid="junit.jars"/>
             <classpath>
                 <pathelement path="target/classes"/>
             </classpath>
