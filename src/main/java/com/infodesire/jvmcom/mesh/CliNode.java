@@ -170,26 +170,11 @@ public class CliNode extends Node implements Runnable {
 
   private void printStatus() {
 
-    p( "----------------------------------------------------------" );
-    p( "Mesh name    : " + meshConfig.name );
-    p( "Node name    : " + myAddress.getName() );
-    p( "Node address : " + myAddress.getInetSocketAddress() );
-    p( "Node joined  : " + ( isIn() ? "yes" : "no" ) );
-    p( "----------------------------------------------------------" );
-
-    for( NodeConfig nodeConfig : meshConfig.getNodes() ) {
-      String nodeStatus = isIn() ? activeMembers.contains( nodeConfig.getAddress() ) ? "in" : "out"
-        : ( nodeConfig.getAddress().equals( myAddress ) ? "out" : "???" );
-      if( myAddress.equals( nodeConfig.getAddress() ) ) {
-        nodeStatus += " (this node)";
-      }
-      p( "Node '" + nodeConfig.getAddress().getName() + "' " + nodeConfig.getAddress().getInetSocketAddress() + " " + nodeStatus );
-    }
-    p( "----------------------------------------------------------" );
+    p( getStatusMessage() );
 
   }
 
-  private void p( String line ) {
+  private void p( CharSequence line ) {
     System.out.println( line );
   }
 

@@ -303,7 +303,7 @@ public class Node {
       if( !nodeAddress.equals( myAddress ) ) {
         try {
           LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
-          CharSequence replyId = ping( client );
+          String replyId = "" + ping( client );
           if( replyId != null ) {
             if( !replyId.equals( nodeAddress.getName() ) ) {
               Mesh.logger.error( "Node " + nodeAddress + " replies with wrong id '" + replyId + "'. Will ignore this node." );
@@ -515,6 +515,40 @@ public class Node {
 
   public void setMessageHandler( MessageHandler messageHandler ) {
     this.messageHandler = messageHandler;
+  }
+
+  public CharSequence getStatusMessage() {
+
+    StringBuilder result = new StringBuilder();
+
+    p( result, "----------------------------------------------------------" );
+    p( result, "Mesh name    : " + meshConfig.name );
+    p( result, "Node name    : " + myAddress.getName() );
+    p( result, "Node address : " + myAddress.getInetSocketAddress() );
+    p( result, "Node joined  : " + ( isIn() ? "yes" : "no" ) );
+    p( result, "----------------------------------------------------------" );
+
+    for( NodeConfig nodeConfig : meshConfig.getNodes() ) {
+      String nodeStatus = isIn() ? activeMembers.contains( nodeConfig.getAddress() ) ? "in" : "out"
+        : ( nodeConfig.getAddress().equals( myAddress ) ? "out" : "???" );
+      if( myAddress.equals( nodeConfig.getAddress() ) ) {
+        nodeStatus += " (this node)";
+      }
+      p( result, "Node '" + nodeConfig.getAddress().getName() + "' " + nodeConfig.getAddress().getInetSocketAddress() + " " + nodeStatus );
+    }
+    p( result, "----------------------------------------------------------" );
+
+    return result;
+
+  }
+
+  private void p( StringBuilder result, CharSequence line ) {
+    result.append( line );
+    result.append( "\n" );
+  }
+
+  public String toString() {
+    return "" + myAddress;
   }
 
 }
