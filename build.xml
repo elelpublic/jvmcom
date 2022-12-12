@@ -406,6 +406,74 @@
         </java>
     </target>
 
+
+    <target name="src.jar" >
+        <jar destfile="target/jvmcom-${jvmcom.version}-src.jar">
+            <fileset dir="src"></fileset>
+        </jar>
+    </target>
+
+
+    <target
+        name="publish"
+        depends="jar, src.jar"
+        description="publish to team repo"
+        >
+
+        <property name="publish.team.path.jars" value="maven/com.infodesire.jvmcom/jars/" />
+        <property name="publish.team.path.sources" value="maven/com.infodesire.jvmcom/sources/" />
+
+        <property file="${user.home}/.bsm/teamserver.properties" />
+
+        <property name="publish.team.server" value="SERVERNAME" />
+        <property name="publish.team.port" value="22" />
+        <property name="publish.team.user" value="USERNAME" />
+        <property name="publish.team.keyfile" value="~/.ssh/id_rsa" />
+
+        <echo>.
+            What to check, if upload fails:
+            - is the server ${publish.team.server} reachable from this machine?
+            - is the public ssh key of the current user deployed on the team server .ssh/authorized_keys?
+            - is the public ssh key of the current user available in the file ${publish.team.keyfile}
+
+            To provide different settings for the team server connection, create of modify these in the
+            file: ~/.bsm/teamserver.properties:
+
+            --------------------------------------------------------------------
+            publish.team.server=SERVERNAME
+            publish.team.port=22
+            publish.team.user=USERNAME
+            publish.team.path.jars=maven/com.infodesire.jvmcom/jars/
+            publish.team.path.sources=maven/com.infodesire.jvmcom/sources/
+            --------------------------------------------------------------------
+        </echo>
+
+        <!-- copy binary -->
+        <echo>Uploading target/jvmcom-${jvmcom.version}.jar to ${publish.team.user}@${publish.team.server}:${publish.team.path.jars}</echo>
+        <scp
+                file="target/jvmcom-${jvmcom.version}.jar"
+                todir="${publish.team.user}@${publish.team.server}:${publish.team.path.jars}"
+                keyfile="${publish.team.keyfile}"
+                verbose="false"
+                trust="true"
+                failonerror="true"
+                port="${publish.team.port}"
+        />
+
+        <!-- copy sources -->
+        <echo>Uploading target/jvmcom-${jvmcom.version}-src.jar to ${publish.team.user}@${publish.team.server}:${publish.team.path.sources}</echo>
+        <scp
+                file="target/jvmcom-${jvmcom.version}.jar"
+                todir="${publish.team.user}@${publish.team.server}:${publish.team.path.sources}"
+                keyfile="${publish.team.keyfile}"
+                verbose="false"
+                trust="true"
+                failonerror="true"
+                port="${publish.team.port}"
+        />
+
+    </target>
+
     <target name="help" depends="usage"/>
 
     <target name="usage">
@@ -419,6 +487,7 @@ ant jar ............................... Create jar file
 ant war ............................... Create war file
 ant test .............................. Run unit tests
 ant integration ....................... Run integration tests
+ant publish ........................... Publish artifacts to team repo
 
 
 # client server -------------------------------------------------------

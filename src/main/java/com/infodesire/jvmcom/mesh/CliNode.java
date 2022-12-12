@@ -147,7 +147,7 @@ public class CliNode extends Node implements Runnable {
       NodeConfig nodeConfig = getNodeConfig( nodeName );
       if( nodeConfig != null ) {
         LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) );
-        String reply = ping( client );
+        CharSequence reply = ping( client );
         p( "Reply: " + reply );
       }
     }
@@ -160,7 +160,7 @@ public class CliNode extends Node implements Runnable {
     try {
       NodeConfig nodeConfig = meshConfig.getNodeConfig( nodeName );
       LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) );
-      String reply = dm( client, message );
+      CharSequence reply = dm( client, message );
       p( "Reply: " + reply );
     }
     catch( Exception ex ) {

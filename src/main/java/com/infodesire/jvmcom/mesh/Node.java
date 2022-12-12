@@ -8,6 +8,7 @@ import com.infodesire.jvmcom.message.Message;
 import com.infodesire.jvmcom.message.MessageHandler;
 import com.infodesire.jvmcom.pool.SocketPool;
 import com.infodesire.jvmcom.services.Service;
+import com.infodesire.jvmcom.services.logging.LoggingService;
 import org.pcollections.HashTreePMap;
 import org.pcollections.PMap;
 import org.pcollections.PSortedSet;
@@ -96,9 +97,42 @@ public class Node {
       }
     }
 
+    startServices();
+
     notifyLost( lostNodes );
 
   }
+
+  private void startServices() {
+
+    for( String serviceName : config.getServices() ) {
+
+      ServiceConfig serviceConfig = config.getService( serviceName );
+      
+      if( serviceName.equals( "logging" ) ) {
+
+        LoggingService loggingService = new LoggingService( serviceConfig.getPort() );
+        services = services.plus( serviceName, loggingService );
+
+      }
+
+    }
+
+  }
+
+  private void stopServices( long timeoutMs ) {
+
+    for( Service service : services.values() ) {
+      try {
+        service.stop( timeoutMs );
+      }
+      catch( InterruptedException ex ) {
+        logger.error( "Error stopping service " + service.getName() + " on node " + myAddress );
+      }
+    }
+
+  }
+
 
   private void notifyLost( Set<NodeAddress> lostNodes ) {
 
@@ -156,6 +190,8 @@ public class Node {
       meshSocket = null;
     }
 
+    stopServices( timeoutMs );
+
   }
 
   /**
@@ -200,9 +236,9 @@ public class Node {
    * @throws IOException when node could not be notified for network reasons
    *
    */
-  public String ping( LineBufferClient client ) throws IOException {
-    StringBuffer reply = client.send( "ping" );
-    return reply == null ? "" : reply.toString();
+  public CharSequence ping( LineBufferClient client ) throws IOException {
+    CharSequence reply = client.send( "ping" );
+    return reply == null ? "" : reply;
   }
 
   /**
@@ -213,9 +249,9 @@ public class Node {
    * @throws IOException when node could not be notified for network reasons
    *
    */
-  public String services( LineBufferClient client ) throws IOException {
-    StringBuffer reply = client.send( "services" );
-    return reply == null ? "" : reply.toString();
+  public CharSequence services( LineBufferClient client ) throws IOException {
+    CharSequence reply = client.send( "services" );
+    return reply == null ? "" : reply;
   }
 
   /**
@@ -227,9 +263,9 @@ public class Node {
    * @throws IOException when node could not be notified for network reasons
    *
    */
-  public String dm( LineBufferClient client, String message ) throws IOException {
-    StringBuffer reply = client.send( "dm " + message );
-    return reply == null ? "" : reply.toString();
+  public CharSequence dm( LineBufferClient client, String message ) throws IOException {
+    CharSequence reply = client.send( "dm " + message );
+    return reply == null ? "" : reply;
   }
 
   /**
@@ -246,7 +282,7 @@ public class Node {
       if( !nodeAddress.equals( myAddress ) ) {
         try {
           LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
-          StringBuffer reply = client.send( "cast " + message );
+          CharSequence reply = client.send( "cast " + message );
           replies.add( nodeAddress.getName() + ": " + ( reply == null ? "" : reply.toString() ) );
         }
         catch( Exception ex ) {
@@ -267,7 +303,7 @@ public class Node {
       if( !nodeAddress.equals( myAddress ) ) {
         try {
           LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
-          String replyId = ping( client );
+          CharSequence replyId = ping( client );
           if( replyId != null ) {
             if( !replyId.equals( nodeAddress.getName() ) ) {
               Mesh.logger.error( "Node " + nodeAddress + " replies with wrong id '" + replyId + "'. Will ignore this node." );

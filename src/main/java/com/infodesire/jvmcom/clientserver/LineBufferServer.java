@@ -147,7 +147,7 @@ public class LineBufferServer {
             line = reader.readLine();
             logger.info( "Client request: '" + line + "'" );
             HandlerReply reply = handler.process( line );
-            send( reply.replyText );
+            send( reply == null ? "" : reply.replyText );
             stopRequest = !reply.continueProcessing;
           }
           catch( IOException ex ) {}
@@ -165,15 +165,13 @@ public class LineBufferServer {
           try {
             in.close();
           }
-          catch( IOException ex ) {
-          }
+          catch( IOException ex ) {}
         }
         if( out != null ) {
           try {
             out.close();
           }
-          catch( IOException ex ) {
-          }
+          catch( IOException ex ) {}
         }
       }
       logger.info( "Connection closed." );

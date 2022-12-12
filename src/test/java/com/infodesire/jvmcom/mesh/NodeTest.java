@@ -69,8 +69,8 @@ public class NodeTest {
     node1.join();
     node2.join();
 
-    assertEquals( "node2", node1.ping( new LineBufferClient( socketPool.getSocket( node2.getAddress() ) ) ) );
-    assertEquals( "node1", node2.ping( new LineBufferClient( socketPool.getSocket( node1.getAddress() ) ) ) );
+    assertEquals( "node2", "" + node1.ping( new LineBufferClient( socketPool.getSocket( node2.getAddress() ) ) ) );
+    assertEquals( "node1", "" + node2.ping( new LineBufferClient( socketPool.getSocket( node1.getAddress() ) ) ) );
 
     node1.shutDown( 100 );
     node2.shutDown( 100 );

@@ -13,7 +13,7 @@ import java.net.Socket;
  * Client to a LineBufferServer, sending one line of text at a time.
  *
  */
-public class LineBufferClient {
+public class LineBufferClient implements AutoCloseable {
 
 
   private static Logger logger = LoggerFactory.getLogger( "Client" );
@@ -80,7 +80,7 @@ public class LineBufferClient {
    * @return Server reply
    *
    */
-  public StringBuffer send( String line ) throws IOException {
+  public CharSequence send( String line ) throws IOException {
     sendImpl( line );
     StringBuffer reply = getReply();
     if( logger.isDebugEnabled() ) {
@@ -141,6 +141,15 @@ public class LineBufferClient {
 
   public long getCreatedTime() {
     return createdTime;
+  }
+
+  public String toString() {
+    if( isConnected() ) {
+      return "client connected to " + ( host != null ? host + ":" + port : socket.getInetAddress() );
+    }
+    else {
+      return "unconnected client";
+    }
   }
 
 }

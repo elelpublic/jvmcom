@@ -5,7 +5,6 @@ import com.infodesire.jvmcom.SocketManager;
 import com.infodesire.jvmcom.clientserver.HandlerReply;
 import com.infodesire.jvmcom.clientserver.LineBufferHandler;
 import com.infodesire.jvmcom.clientserver.LineBufferServer;
-import com.infodesire.jvmcom.mesh.NodeAddress;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Pair;

@@ -17,7 +17,7 @@ public class PerformanceTest {
 
     System.setProperty( "org.slf4j.simpleLogger.defaultLogLevel", "debug" );
 
-    StringBuffer reply;
+    CharSequence reply;
 
     ServerConfig config = new ServerConfig();
     config.port = 0;
@@ -63,7 +63,7 @@ public class PerformanceTest {
       client.send( "put main v-" + i + " " + i );
     }
 
-    StringBuffer reply = client.send( "size main" );
+    CharSequence reply = client.send( "size main" );
     assertEquals( DATA_SIZE, Integer.parseInt( reply.toString() ) );
 
   }

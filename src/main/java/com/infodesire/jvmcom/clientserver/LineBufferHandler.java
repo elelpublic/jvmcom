@@ -1,8 +1,5 @@
 package com.infodesire.jvmcom.clientserver;
 
-import com.infodesire.jvmcom.mesh.NodeAddress;
-
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 /**

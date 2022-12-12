@@ -36,7 +36,7 @@ public class NodeAddress implements Comparable<NodeAddress> {
   }
 
   public String toString() {
-    return name + "(" + addressString + ")";
+    return name + " (" + addressString + ")";
   }
 
   /**
