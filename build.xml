@@ -48,7 +48,10 @@
 
     <target name="setup.groovy" depends="fetchlibs, properties">
         <path id="groovy.lib.path">
-            <fileset dir="lib" includes="groovy-${groovy.version}.jar"/>
+            <fileset dir="lib" >
+                <include name="groovy-${groovy.version}.jar" />
+                <include name="groovy-ant-${groovy.version}.jar" />
+            </fileset>
         </path>
         <taskdef name="groovy"
                  classname="org.codehaus.groovy.ant.Groovy"

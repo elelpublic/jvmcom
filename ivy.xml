@@ -23,12 +23,12 @@
         <dependency org="org.apache.commons" name="commons-lang3" rev="${commons-lang3.version}"/>
 
         <!--
-        https://mvnrepository.com/artifact/org.apache.groovy/groovy
+        https://mvnrepository.com/artifact/org.apache.groovy/groovy-all
 
         We use groovy only to perform script tasks in the ant build script
-        -->
         <dependency org="org.apache.groovy" name="groovy" rev="${groovy.version}"/>
-
+        -->
+        <dependency org="org.apache.groovy" name="groovy-ant" rev="4.0.5"/>
 
         <!--
         https://mvnrepository.com/artifact/commons-cli/commons-cli
