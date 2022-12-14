@@ -12,7 +12,7 @@ public class MeshSingleton {
 
     private static Mesh mesh;
 
-    public static void initialize(File meshConfigFile ) throws IOException {
+    public static void initialize( File meshConfigFile ) throws IOException {
         if( mesh != null ) {
             throw new RuntimeException( "Mesh is already initialized" );
         }
