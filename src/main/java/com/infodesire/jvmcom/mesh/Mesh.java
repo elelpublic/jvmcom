@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 
 /**
@@ -18,11 +19,13 @@ public class Mesh {
   public static Logger logger = LoggerFactory.getLogger( "Server" );
   private final MeshConfig config;
   private final SocketPool socketPool;
+  private final Supplier<MessageHandler> messageHandlerFactory;
   private Map<String, Node> nodes = new HashMap<>();
 
-  public Mesh( MeshConfig config, SocketPool socketPool ) {
+  public Mesh( MeshConfig config, SocketPool socketPool, Supplier<MessageHandler> messageHandlerFactory ) {
     this.config = config;
     this.socketPool = socketPool;
+    this.messageHandlerFactory = messageHandlerFactory;
   }
 
   public MeshConfig getConfig() {
@@ -43,7 +46,7 @@ public class Mesh {
     }
     Node node = nodes.get( nodeId );
     if( node == null ) {
-      node = new Node( this, nodeConfig, socketPool );
+      node = new Node( this, nodeConfig, socketPool, messageHandlerFactory );
       nodes.put( nodeId, node );
     }
     return node;

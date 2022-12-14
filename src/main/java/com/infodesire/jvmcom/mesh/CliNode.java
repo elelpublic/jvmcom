@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 import static com.infodesire.jvmcom.ConfigProperties.LEAVE_TIMEOUT_MS;
 
@@ -22,11 +23,9 @@ public class CliNode extends Node implements Runnable {
 
   private final CompletableFuture<Void> background;
 
-  public CliNode( Mesh mesh, NodeConfig config, SocketPool socketPool ) throws IOException {
-    super( mesh, config, socketPool );
-
+  public CliNode( Mesh mesh, NodeConfig config, SocketPool socketPool, Supplier<MessageHandler> messageHandlerFactory ) {
+    super( mesh, config, socketPool, messageHandlerFactory );
     background = CompletableFuture.runAsync( this );
-
   }
 
   @Override
@@ -44,7 +43,9 @@ public class CliNode extends Node implements Runnable {
         try {
           input = in.readLine();
         }
-        catch( IOException ex ) {}
+        catch( IOException ex ) {
+          ex.printStackTrace();
+        }
         if( input == null ) {
           leave( LEAVE_TIMEOUT_MS );
           shutDown = true;
@@ -174,7 +175,7 @@ public class CliNode extends Node implements Runnable {
 
   }
 
-  private void p( CharSequence line ) {
+  private static void p( CharSequence line ) {
     System.out.println( line );
   }
 
@@ -206,5 +207,6 @@ public class CliNode extends Node implements Runnable {
   public void waitForShutDown() {
     background.join();
   }
+
 
 }

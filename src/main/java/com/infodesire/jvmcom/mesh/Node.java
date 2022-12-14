@@ -3,9 +3,6 @@ package com.infodesire.jvmcom.mesh;
 import com.infodesire.jvmcom.clientserver.HandlerReply;
 import com.infodesire.jvmcom.clientserver.LineBufferClient;
 import com.infodesire.jvmcom.clientserver.LineBufferHandler;
-import com.infodesire.jvmcom.message.LogMessageHandler;
-import com.infodesire.jvmcom.message.Message;
-import com.infodesire.jvmcom.message.MessageHandler;
 import com.infodesire.jvmcom.pool.SocketPool;
 import com.infodesire.jvmcom.services.Service;
 import com.infodesire.jvmcom.services.logging.LoggingService;
@@ -20,16 +17,12 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Queue;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.infodesire.jvmcom.ConfigProperties.LEAVE_TIMEOUT_MS;
-import static com.infodesire.jvmcom.message.MessageType.BROADCAST;
-import static com.infodesire.jvmcom.message.MessageType.DM;
 
 /**
  * A mesh node
@@ -45,20 +38,19 @@ public class Node {
   protected final NodeConfig config;
   protected final NodeAddress myAddress;
   protected final String myName;
+  private final Supplier<MessageHandler> messageHandlerFactory;
   protected PSortedSet<NodeAddress> activeMembers = TreePSet.empty();
   private MeshSocket meshSocket;
-  private Queue<Message> dms = new LinkedBlockingQueue<>();
-  protected Queue<Message> broadcasts = new LinkedBlockingQueue<>();
-  private MessageHandler messageHandler = new LogMessageHandler();
   private PMap<String, Service> services = HashTreePMap.empty();
 
-  public Node( Mesh mesh, NodeConfig config, SocketPool socketPool ) {
+  public Node( Mesh mesh, NodeConfig config, SocketPool socketPool, Supplier<MessageHandler> messageHandlerFactory ) {
     this.mesh = mesh;
     this.meshConfig = mesh.getConfig();
     this.config = config;
     myAddress = config.getAddress();
     myName = myAddress.getName();
     this.socketPool = socketPool;
+    this.messageHandlerFactory = messageHandlerFactory;
     logger.info( "Create mesh node on " + myAddress );
     if( config.getAutojoin() ) {
       try {
@@ -80,7 +72,7 @@ public class Node {
       throw new RuntimeException( "Already joined." );
     }
 
-    meshSocket = new MeshSocket( myAddress, new HandlerFactory( mesh ) );
+    meshSocket = new MeshSocket( myAddress, new HandlerFactory( mesh, messageHandlerFactory ) );
     
     updateActiveMembers();
     Set<NodeAddress> lostNodes = new HashSet<>();
@@ -347,14 +339,16 @@ public class Node {
   class HandlerFactory implements Supplier<LineBufferHandler> {
 
     private final Mesh mesh;
+    private final Supplier<MessageHandler> messageHandlerFactory;
 
-    public HandlerFactory( Mesh mesh ) {
+    public HandlerFactory( Mesh mesh, Supplier<MessageHandler> messageHandlerFactory ) {
       this.mesh = mesh;
+      this.messageHandlerFactory = messageHandlerFactory;
     }
 
     @Override
     public LineBufferHandler get() {
-      return new RequestHandler( mesh );
+      return new RequestHandler( mesh, messageHandlerFactory.get() );
     }
 
   }
@@ -365,10 +359,12 @@ public class Node {
   class RequestHandler implements LineBufferHandler {
 
     private final Mesh mesh;
+    private final MessageHandler messageHandler;
     private InetSocketAddress senderAddress;
 
-    public RequestHandler( Mesh mesh ) {
+    public RequestHandler( Mesh mesh, MessageHandler messageHandler ) {
       this.mesh = mesh;
+      this.messageHandler = messageHandler;
     }
 
     @Override
@@ -392,10 +388,10 @@ public class Node {
           return handleLeave( line.substring( 6 ) );
         }
         else if( line.startsWith( "dm " ) ) {
-          return handleDm( "" + senderAddress, line.substring( 3 ) );
+          return messageHandler.handleDm( "" + senderAddress, line.substring( 3 ) );
         }
         else if( line.startsWith( "cast " ) ) {
-          return handleCast( "" + senderAddress, line.substring( 5 ) );
+          return messageHandler.handleCast( "" + senderAddress, line.substring( 5 ) );
         }
         else if( line.equals( "services" ) ) {
           return handleServices();
@@ -408,34 +404,6 @@ public class Node {
     }
 
 
-  }
-
-  /**
-   * Handle direct message
-   *
-   * @param sender Name of sender
-   * @param message Message
-   * @return Reply
-   */
-  private HandlerReply handleDm( String sender, String message ) {
-    Message messageObject = new Message( DM, sender, message );
-    logger.info( "Received: " + messageObject );
-    dms.offer( new Message( DM, sender, message ) );
-    return new HandlerReply( "OK" );
-  }
-
-  /**
-   * Handle broadcast message
-   *
-   * @param sender Name of sender
-   * @param message Message
-   * @return Reply
-   */
-  private HandlerReply handleCast( String sender, String message ) {
-    Message messageObject = new Message( BROADCAST, sender, message );
-    logger.info( "Received: " + messageObject );
-    broadcasts.offer( messageObject );
-    return new HandlerReply( "OK" );
   }
 
   private HandlerReply handleJoin( String nodeId ) {
@@ -507,14 +475,6 @@ public class Node {
 
   public void finalize() {
     leave( LEAVE_TIMEOUT_MS );
-  }
-
-  public MessageHandler getMessageHandler() {
-    return messageHandler;
-  }
-
-  public void setMessageHandler( MessageHandler messageHandler ) {
-    this.messageHandler = messageHandler;
   }
 
   public CharSequence getStatusMessage() {

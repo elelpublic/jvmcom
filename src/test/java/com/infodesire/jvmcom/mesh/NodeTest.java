@@ -51,7 +51,7 @@ public class NodeTest {
 
     socketPool = new SocketPool();
 
-    mesh = new Mesh( config, socketPool );
+    mesh = new Mesh( config, socketPool, new PrintMessageHandlerFactory() );
 
     node1 = mesh.get( "node1" );
     node2 = mesh.get( "node2" );

@@ -4,8 +4,8 @@ import com.infodesire.jvmcom.clientserver.LineBufferClient;
 import com.infodesire.jvmcom.mesh.CliNode;
 import com.infodesire.jvmcom.mesh.Mesh;
 import com.infodesire.jvmcom.mesh.MeshConfig;
-import com.infodesire.jvmcom.mesh.NodeAddress;
 import com.infodesire.jvmcom.mesh.NodeConfig;
+import com.infodesire.jvmcom.mesh.PrintMessageHandlerFactory;
 import com.infodesire.jvmcom.pool.SocketPool;
 import com.infodesire.jvmcom.services.value.ValueServer;
 import org.apache.commons.cli.CommandLine;
@@ -16,8 +16,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.SystemUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,8 +30,6 @@ import static com.infodesire.jvmcom.ConfigProperties.THREAD_COUNT;
  *
  */
 public class Main {
-
-  private static Logger logger = LoggerFactory.getLogger( "jvmcom" );
 
   private static Options options;
 
@@ -104,8 +100,9 @@ public class Main {
         Runtime.getRuntime().halt( 1 );
       }
       SocketPool socketPool = new SocketPool();
-      Mesh mesh = new Mesh( config, socketPool );
-      new CliNode( mesh, nodeConfig, socketPool ).waitForShutDown();
+      PrintMessageHandlerFactory messageHandlerFactory = new PrintMessageHandlerFactory();
+      Mesh mesh = new Mesh( config, socketPool, messageHandlerFactory );
+      new CliNode( mesh, nodeConfig, socketPool, messageHandlerFactory ).waitForShutDown();
     }
     else {
       showUsage( "Unknown command: " + command );
