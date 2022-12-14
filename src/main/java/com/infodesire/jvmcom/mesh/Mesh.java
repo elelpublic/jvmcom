@@ -1,5 +1,6 @@
 package com.infodesire.jvmcom.mesh;
 
+import com.infodesire.jvmcom.clientserver.LineBufferClient;
 import com.infodesire.jvmcom.pool.SocketPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,5 +48,20 @@ public class Mesh {
     }
     return node;
   }
+
+
+  /**
+   * @param nodeId Id of node to communicate with
+   * @return Client to communicate with remote node
+   *
+   */
+  public LineBufferClient getClient( String nodeId ) throws Exception {
+    NodeConfig nodeConfig = config.getNodeConfig( nodeId );
+    if( nodeConfig == null ) {
+      throw new RuntimeException( "No node found for node id " + nodeId );
+    }
+    return new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) );
+  }
+
 
 }
