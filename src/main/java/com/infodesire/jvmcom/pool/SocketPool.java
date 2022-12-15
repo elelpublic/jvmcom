@@ -36,6 +36,8 @@ public class SocketPool {
     config.setTestOnBorrow( true );
     config.setTestOnReturn( true );
     config.setJmxEnabled( false );
+    //config.setMaxTotal( 1000 );
+    config.setMaxTotalPerKey( 1000 );
     pool = new GenericKeyedObjectPool<NodeAddress, Socket>( factory, config );
   }
 

@@ -32,12 +32,13 @@ public class PerformanceTest {
     server.start();
     int port = server.getPort();
 
-    LineBufferClient client = new LineBufferClient( "127.0.0.1", port );
-    client.connect( false );
+    try( LineBufferClient client = new LineBufferClient( "127.0.0.1", port ) ) {
 
-    reply = client.send( "put main version 1" );
+      client.connect( false );
+      reply = client.send( "put main version 1" );
+      assertEquals( "OK", reply.toString() );
 
-    assertEquals( "OK", reply.toString() );
+    }
 
   }
 

@@ -79,8 +79,9 @@ public class Main {
       server.waitForShutDown();
     }
     else if( command.equals( "client" ) ) {
-      LineBufferClient client = new LineBufferClient( host, port );
-      client.connect( true );
+      try( LineBufferClient client = new LineBufferClient( host, port ) ) {
+        client.connect( true );
+      }
     }
     else if( command.equals( "node" ) ) {
       if( !cmd.hasOption( "c" ) ) {

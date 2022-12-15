@@ -78,8 +78,7 @@ public class Node {
     Set<NodeAddress> lostNodes = new HashSet<>();
     for( NodeAddress nodeAddress : activeMembers ) {
       if( !nodeAddress.equals( myAddress ) ) {
-        try {
-          LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
+        try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) ) ) {
           notifyJoin( client );
         }
         catch( Exception ex ) {
@@ -134,8 +133,7 @@ public class Node {
     for( NodeAddress nodeAddress : activeMembers ) {
       if( !lostNodes.contains( nodeAddress ) && !nodeAddress.equals( myAddress ) ) {
         for( NodeAddress lostNode : lostNodes ) {
-          try {
-            LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
+          try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) )  ) {
             notifyLost( client, lostNode );
           }
           catch( Exception ex ) {
@@ -159,8 +157,7 @@ public class Node {
     Set<NodeAddress> lostNodes = new HashSet<>();
     for( NodeAddress nodeAddress : activeMembers ) {
       if( !nodeAddress.equals( myAddress ) ) {
-        try {
-          LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
+        try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) ) )  {
           notifyLeave( client );
         }
         catch( Exception ex ) {
@@ -272,8 +269,7 @@ public class Node {
     StringJoiner replies = new StringJoiner( "\n" );
     for( NodeAddress nodeAddress : activeMembers ) {
       if( !nodeAddress.equals( myAddress ) ) {
-        try {
-          LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
+        try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) ) ) {
           CharSequence reply = client.send( "cast " + message );
           replies.add( nodeAddress.getName() + ": " + ( reply == null ? "" : reply.toString() ) );
         }
@@ -293,8 +289,7 @@ public class Node {
     for( NodeConfig nodeConfig : meshConfig.getNodes() ) {
       NodeAddress nodeAddress = nodeConfig.getAddress();
       if( !nodeAddress.equals( myAddress ) ) {
-        try {
-          LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );
+        try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );) {
           String replyId = "" + ping( client );
           if( replyId != null ) {
             if( !replyId.equals( nodeAddress.getName() ) ) {

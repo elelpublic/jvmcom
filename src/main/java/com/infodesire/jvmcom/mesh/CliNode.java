@@ -115,8 +115,7 @@ public class CliNode extends Node implements Runnable {
   private void services( String nodeName ) {
     NodeConfig nodeConfig = getNodeConfig( nodeName );
     if( nodeConfig != null ) {
-      try {
-        LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) );
+      try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) ) ) {
         p( "Reply: " + services( client ) );
       }
       catch( Exception ex ) {
@@ -144,23 +143,23 @@ public class CliNode extends Node implements Runnable {
   }
 
   private void ping( String nodeName ) {
-    try {
-      NodeConfig nodeConfig = getNodeConfig( nodeName );
-      if( nodeConfig != null ) {
-        LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) );
+    NodeConfig nodeConfig = getNodeConfig( nodeName );
+    if( nodeConfig != null ) {
+      try ( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) ) ) {
         CharSequence reply = ping( client );
         p( "Reply: " + reply );
       }
-    }
-    catch( Exception ex ) {
-      ex.printStackTrace();
+      catch( Exception ex ) {
+        ex.printStackTrace();
+      }
     }
   }
 
   private void dm( String nodeName, String message ) {
-    try {
-      NodeConfig nodeConfig = meshConfig.getNodeConfig( nodeName );
+    NodeConfig nodeConfig = meshConfig.getNodeConfig( nodeName );
+    try (
       LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) );
+      ) {
       CharSequence reply = dm( client, message );
       p( "Reply: " + reply );
     }

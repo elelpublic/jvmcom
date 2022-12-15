@@ -18,9 +18,10 @@ public class LineBufferServerTest {
     Supplier<LineBufferHandler> handlerFactory = new EmptyHandlerFactory();
     LineBufferServer server = new LineBufferServer( config, handlerFactory );
     server.start();
-    LineBufferClient client = new LineBufferClient( "localhost", server.getPort() );
-    client.connect( false );
-    assertEquals( "", "" + client.send( "hello" ) );
+    try( LineBufferClient client = new LineBufferClient( "localhost", server.getPort() ) ) {
+      client.connect( false );
+      assertEquals( "", "" + client.send( "hello" ) );
+    }
   }
 
   @Test
@@ -29,9 +30,10 @@ public class LineBufferServerTest {
     Supplier<LineBufferHandler> handlerFactory = new EchoHandlerFactory();
     LineBufferServer server = new LineBufferServer( config, handlerFactory );
     server.start();
-    LineBufferClient client = new LineBufferClient( "localhost", server.getPort() );
-    client.connect( false );
-    assertEquals( "Hello World!", "" + client.send( "Hello World!" ) );
+    try( LineBufferClient client = new LineBufferClient( "localhost", server.getPort() ) ) {
+      client.connect( false );
+      assertEquals( "Hello World!", "" + client.send( "Hello World!" ) );
+    }
   }
 
 

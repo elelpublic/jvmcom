@@ -69,8 +69,15 @@ public class NodeTest {
     node1.join();
     node2.join();
 
-    assertEquals( "node2", "" + node1.ping( new LineBufferClient( socketPool.getSocket( node2.getAddress() ) ) ) );
-    assertEquals( "node1", "" + node2.ping( new LineBufferClient( socketPool.getSocket( node1.getAddress() ) ) ) );
+    try(
+      LineBufferClient client1 = new LineBufferClient( socketPool.getSocket( node2.getAddress() ) );
+      LineBufferClient client2 = new LineBufferClient( socketPool.getSocket( node1.getAddress() ) );
+    ) {
+
+      assertEquals( "node2", "" + node1.ping( client1 ) );
+      assertEquals( "node1", "" + node2.ping( client2 ) );
+
+    }
 
     node1.shutDown( 100 );
     node2.shutDown( 100 );
@@ -119,6 +126,27 @@ public class NodeTest {
     assertTrue( node3.getActiveMembers().contains( node3.getAddress() ) );
 
     node3.shutDown( 1000 );
+
+  }
+
+  @Test( timeout = 2000 )
+  public void testMultipleJoinLeave() throws IOException {
+
+    long timeout = 500;
+
+    node1.join();
+    node2.join();
+
+    for( int i = 0; i < 100; i++ ) {
+      System.out.println("BEFORE LEAVE " + i);
+      node1.leave( timeout );
+      System.out.println("BEFORE JOIN " + i);
+      node1.join();
+    }
+
+    node1.leave( timeout );
+
+    node2.leave( timeout );
 
   }
 

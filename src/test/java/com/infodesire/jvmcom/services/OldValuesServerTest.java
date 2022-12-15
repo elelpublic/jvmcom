@@ -28,16 +28,19 @@ public class OldValuesServerTest {
 
     int port = server.getPort();
 
-    LineBufferClient client = new LineBufferClient( "localhost", port );
-    client.connect( false );
-    assertTrue( client.ping() );
+    try( LineBufferClient client = new LineBufferClient( "localhost", port ) ) {
 
-    server.stop( 100 );
-    server.start();
+      client.connect( false );
+      assertTrue( client.ping() );
 
-    assertEquals( port, server.getPort() );
+      server.stop( 100 );
+      server.start();
 
-    client.close();
+      assertEquals( port, server.getPort() );
+
+      client.close();
+
+    }
 
   }
 
