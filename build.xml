@@ -78,6 +78,8 @@
                 srcdir="src/main/java"
                 destdir="target/classes"
                 debug="true"
+                source="1.8"
+                target="1.8"
         >
             <src path="src/main/java"/>
             <classpath refid="thirdparty.jars"/>
@@ -87,6 +89,8 @@
                 srcdir="src/test/java"
                 destdir="target/test-classes"
                 debug="true"
+                source="1.8"
+                target="1.8"
         >
             <src path="src/test/java"/>
             <classpath refid="thirdparty.jars"/>
@@ -100,6 +104,8 @@
                 srcdir="src/integration/java"
                 destdir="target/integration-classes"
                 debug="true"
+                source="1.8"
+                target="1.8"
         >
             <src path="src/integration/java"/>
             <classpath refid="thirdparty.jars"/>
