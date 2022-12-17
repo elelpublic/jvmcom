@@ -61,6 +61,18 @@ public class NodeTest {
 
   @After
   public void tearDown() {
+    try {
+      node1.shutDown( 500 );
+    }
+    catch( Throwable ex ) {}
+    try {
+      node2.shutDown( 500 );
+    }
+    catch( Throwable ex ) {}
+    try {
+      node3.shutDown( 500 );
+    }
+    catch( Throwable ex ) {}
   }
 
   @Test( timeout = 2000 )
@@ -126,27 +138,6 @@ public class NodeTest {
     assertTrue( node3.getActiveMembers().contains( node3.getAddress() ) );
 
     node3.shutDown( 1000 );
-
-  }
-
-  @Test( timeout = 2000 )
-  public void testMultipleJoinLeave() throws IOException {
-
-    long timeout = 500;
-
-    node1.join();
-    node2.join();
-
-    for( int i = 0; i < 100; i++ ) {
-      System.out.println("BEFORE LEAVE " + i);
-      node1.leave( timeout );
-      System.out.println("BEFORE JOIN " + i);
-      node1.join();
-    }
-
-    node1.leave( timeout );
-
-    node2.leave( timeout );
 
   }
 
