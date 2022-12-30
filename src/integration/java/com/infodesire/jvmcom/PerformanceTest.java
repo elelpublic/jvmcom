@@ -1,6 +1,7 @@
 package com.infodesire.jvmcom;
 
 import com.infodesire.jvmcom.clientserver.LineBufferClient;
+import com.infodesire.jvmcom.pool.SocketPool;
 import com.infodesire.jvmcom.services.value.ValueServer;
 import org.junit.Test;
 
@@ -13,7 +14,7 @@ public class PerformanceTest {
 
 
   @Test
-  public void testCommunication() throws IOException {
+  public void testCommunication() throws Exception {
 
     System.setProperty( "org.slf4j.simpleLogger.defaultLogLevel", "debug" );
 
@@ -32,9 +33,8 @@ public class PerformanceTest {
     server.start();
     int port = server.getPort();
 
-    try( LineBufferClient client = new LineBufferClient( "127.0.0.1", port ) ) {
+    try( LineBufferClient client = new LineBufferClient( new SocketPool(), "127.0.0.1", port ) ) {
 
-      client.connect( false );
       reply = client.send( "put main version 1" );
       assertEquals( "OK", reply.toString() );
 
@@ -46,7 +46,7 @@ public class PerformanceTest {
   int DATA_SIZE = 10000;
 
   @Test
-  public void testBigData() throws IOException {
+  public void testBigData() throws Exception {
 
     System.setProperty( "org.slf4j.simpleLogger.defaultLogLevel", "error" );
     ServerConfig config = new ServerConfig();
@@ -57,8 +57,7 @@ public class PerformanceTest {
 
     int port = server.getPort();
 
-    LineBufferClient client = new LineBufferClient( "127.0.0.1", port );
-    client.connect( false );
+    LineBufferClient client = new LineBufferClient( new SocketPool(), "127.0.0.1", port );
 
     for( int i = 0; i < DATA_SIZE; i++ ) {
       client.send( "put main v-" + i + " " + i );

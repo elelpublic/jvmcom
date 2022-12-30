@@ -115,7 +115,7 @@ public class CliNode extends Node implements Runnable {
   private void services( String nodeName ) {
     NodeConfig nodeConfig = getNodeConfig( nodeName );
     if( nodeConfig != null ) {
-      try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress().getInetSocketAddress() ) ) ) {
+      try( LineBufferClient client = new LineBufferClient( socketPool, nodeConfig.getAddress() ) ) {
         p( "Reply: " + services( client ) );
       }
       catch( Exception ex ) {
@@ -145,7 +145,7 @@ public class CliNode extends Node implements Runnable {
   private void ping( String nodeName ) {
     NodeConfig nodeConfig = getNodeConfig( nodeName );
     if( nodeConfig != null ) {
-      try ( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress().getInetSocketAddress() ) ) ) {
+      try ( LineBufferClient client = new LineBufferClient( socketPool, nodeConfig.getAddress() ) ) {
         CharSequence reply = ping( client );
         p( "Reply: " + reply );
       }
@@ -157,9 +157,7 @@ public class CliNode extends Node implements Runnable {
 
   private void dm( String nodeName, String message ) {
     NodeConfig nodeConfig = meshConfig.getNodeConfig( nodeName );
-    try (
-      LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress().getInetSocketAddress() ) );
-      ) {
+    try ( LineBufferClient client = new LineBufferClient( socketPool, nodeConfig.getAddress() ) ) {
       CharSequence reply = dm( client, message );
       p( "Reply: " + reply );
     }

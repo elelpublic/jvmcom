@@ -7,6 +7,8 @@ import com.infodesire.jvmcom.util.SocketUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileReader;
@@ -24,6 +26,11 @@ public class NodeTest {
   private SocketPool socketPool;
   private Node node1, node2, node3;
 
+  static {
+    System.setProperty( "org.slf4j.simpleLogger.defaultLogLevel", "debug" );
+  }
+  private static Logger logger = LoggerFactory.getLogger( "NodeTest" );
+
   @Before
   public void setUp() throws Exception {
 
@@ -38,10 +45,10 @@ public class NodeTest {
     out.println( "nodes.node3.port=" + freePorts.next() );
     out.close();
 
-    System.out.println( "Using mesh config file: " + tempFile );
-    System.out.println( "-------------------------------------------------" );
-    System.out.println( FileUtils.readFile( tempFile ) );
-    System.out.println( "-------------------------------------------------" );
+    logger.debug( "Using mesh config file: " + tempFile );
+    logger.debug( "-------------------------------------------------" );
+    logger.debug( FileUtils.readFile( tempFile ) );
+    logger.debug( "-------------------------------------------------" );
 
     Properties properties = new Properties();
     properties.load( new FileReader( tempFile ) );
@@ -80,8 +87,8 @@ public class NodeTest {
     node2.join();
 
     try(
-      LineBufferClient client1 = new LineBufferClient( socketPool.getSocket( node2.getAddress().getInetSocketAddress() ) );
-      LineBufferClient client2 = new LineBufferClient( socketPool.getSocket( node1.getAddress().getInetSocketAddress() ) );
+      LineBufferClient client1 = new LineBufferClient( socketPool, node2.getAddress() );
+      LineBufferClient client2 = new LineBufferClient( socketPool, node1.getAddress() );
     ) {
 
       assertEquals( "node2", "" + node1.ping( client1 ) );
@@ -147,8 +154,8 @@ public class NodeTest {
     node2.join();
     node3.join();
 
-    assertEquals( "OK", "" + node1.dm( new LineBufferClient( socketPool.getSocket( node2.getAddress().getInetSocketAddress() ) ), "hi" ) );
-
+    LineBufferClient client = new LineBufferClient( socketPool, node2.getAddress() );
+    assertEquals( "OK", "" + node1.dm( client, "hi" ) );
     assertEquals( "", "node2: OK\nnode3: OK", node1.cast( "hello all" ) );
 
   }

@@ -63,7 +63,7 @@ public class Mesh {
     if( nodeConfig == null ) {
       throw new RuntimeException( "No node found for node id " + nodeId );
     }
-    return new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress().getInetSocketAddress() ) );
+    return new LineBufferClient( socketPool, nodeConfig.getAddress() );
   }
 
 

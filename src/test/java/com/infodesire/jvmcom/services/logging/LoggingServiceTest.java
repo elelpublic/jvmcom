@@ -1,5 +1,6 @@
 package com.infodesire.jvmcom.services.logging;
 
+import com.infodesire.jvmcom.pool.SocketPool;
 import org.junit.After;
 import org.junit.Test;
 
@@ -34,7 +35,7 @@ public class LoggingServiceTest {
 
       service.start();
       InetSocketAddress serviceAddress = new InetSocketAddress( "localhost", service.getPort() );
-      LoggingClient client = new LoggingClient( serviceAddress, "test" );
+      LoggingClient client = new LoggingClient( new SocketPool(), serviceAddress, "test" );
       ressources.add( client );
 
       assertEquals( Level.INFO, client.getLevel() );

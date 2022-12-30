@@ -1,12 +1,12 @@
 package com.infodesire.jvmcom.services.logging;
 
 import com.infodesire.jvmcom.clientserver.LineBufferClient;
+import com.infodesire.jvmcom.pool.SocketPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 
 /**
  * A client for logging onto a remove logging service
@@ -14,31 +14,20 @@ import java.net.Socket;
  */
 public class LoggingClient implements AutoCloseable {
 
-  private static Logger localLog = LoggerFactory.getLogger( "Logging" );
+  private static final Logger localLog = LoggerFactory.getLogger( "Logging" );
   private final LineBufferClient client;
-  private Level level = Level.INFO;
-
-
-  /**
-   * Create logger which is a client to a remote logging service
-   *
-   * @param serverAddress Address of remote logging server
-   * @param log Name of logging category
-   *
-   */
-  public LoggingClient( InetSocketAddress serverAddress, String log ) throws IOException {
-    this( new Socket( serverAddress.getHostName(), serverAddress.getPort() ), log );
-  }
+  private final Level level = Level.INFO;
 
   /**
    * Create logger which is a client to a remote logging service
    *
-   * @param socket Connection to remote logging server
+   * @param socketPool Pool of sockets
+   * @param inetSocketAddress Address of server
    * @param log Name of logging category
    *
    */
-  public LoggingClient( Socket socket, String log ) throws IOException {
-    client = new LineBufferClient( socket );
+  public LoggingClient( SocketPool socketPool, InetSocketAddress inetSocketAddress, String log ) throws Exception {
+    client = new LineBufferClient( socketPool, inetSocketAddress );
     updateLevel();
   }
 

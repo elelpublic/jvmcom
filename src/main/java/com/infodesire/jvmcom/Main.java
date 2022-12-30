@@ -1,25 +1,15 @@
 package com.infodesire.jvmcom;
 
 import com.infodesire.jvmcom.clientserver.LineBufferClient;
-import com.infodesire.jvmcom.mesh.CliNode;
-import com.infodesire.jvmcom.mesh.Mesh;
-import com.infodesire.jvmcom.mesh.MeshConfig;
-import com.infodesire.jvmcom.mesh.NodeConfig;
-import com.infodesire.jvmcom.mesh.PrintMessageHandlerFactory;
+import com.infodesire.jvmcom.mesh.*;
 import com.infodesire.jvmcom.pool.SocketPool;
 import com.infodesire.jvmcom.services.value.ValueServer;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.*;
 import org.apache.commons.lang3.SystemUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.List;
 
 import static com.infodesire.jvmcom.ConfigProperties.THREAD_COUNT;
@@ -33,7 +23,7 @@ public class Main {
 
   private static Options options;
 
-  public static void main( String... args ) throws IOException, ParseException, InterruptedException {
+  public static void main( String... args ) throws Exception {
 
     print( "Demo 1.0" );
     print( "Running as " + SystemUtils.getUserName() + "@" + InetAddress.getLocalHost().getHostName() );
@@ -79,8 +69,9 @@ public class Main {
       server.waitForShutDown();
     }
     else if( command.equals( "client" ) ) {
-      try( LineBufferClient client = new LineBufferClient( host, port ) ) {
-        client.connect( true );
+      SocketPool socketPool = new SocketPool();
+      try( LineBufferClient client = new LineBufferClient( socketPool, new InetSocketAddress( host, port ) ) ) {
+        client.enterInteractiveMode();
       }
     }
     else if( command.equals( "node" ) ) {

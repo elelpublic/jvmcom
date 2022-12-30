@@ -1,5 +1,7 @@
 package com.infodesire.jvmcom.clientserver;
 
+import com.infodesire.jvmcom.mesh.NodeAddress;
+import com.infodesire.jvmcom.pool.SocketPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 /**
@@ -16,26 +19,28 @@ import java.net.Socket;
 public class LineBufferClient implements AutoCloseable {
 
 
-  private static Logger logger = LoggerFactory.getLogger( "Client" );
-
-
-  private String host;
-  private int port;
+  private static final Logger logger = LoggerFactory.getLogger( "Client" );
+  private final SocketPool socketPool;
+  private final InetSocketAddress inetSocketAddress;
   private PrintWriter serverOut;
   private Socket socket;
   private BufferedReader in;
-  private long createdTime = System.currentTimeMillis();
+  private final long createdTime = System.currentTimeMillis();
 
 
-  public LineBufferClient( String host, int port ) {
-    this.host = host;
-    this.port = port;
+  public LineBufferClient( SocketPool socketPool, String host, int port ) throws Exception {
+    this( socketPool, new InetSocketAddress( host, port ) );
   }
 
 
-  public LineBufferClient( Socket socket ) throws IOException {
-    this.socket = socket;
-    welcome();
+  public LineBufferClient( SocketPool socketPool, NodeAddress nodeAddress ) throws Exception {
+    this( socketPool, nodeAddress.getInetSocketAddress() );
+  }
+
+  public LineBufferClient( SocketPool socketPool, InetSocketAddress inetSocketAddress ) throws Exception {
+    this.socketPool = socketPool;
+    this.inetSocketAddress = inetSocketAddress;
+    connect();
   }
 
   private void welcome() throws IOException {
@@ -44,32 +49,30 @@ public class LineBufferClient implements AutoCloseable {
     logger.info( "Server reply: " + getReply() );
   }
 
-  public void connect( boolean interactive ) throws IOException {
-
-    logger.info( "Connecting to " + host + ":" + port );
-    socket = new Socket( host, port );
+  private void connect() throws Exception {
+    logger.info( "Connecting to " + inetSocketAddress );
+    socket = socketPool.getSocket( inetSocketAddress );
     welcome();
+  }
 
-    if( interactive ) {
+  public void enterInteractiveMode() throws IOException {
 
-      logger.info( "Connected. Enter text to send now." );
+    logger.info( "Connected. Enter text to send now." );
 
-      BufferedReader console = new BufferedReader( new InputStreamReader( System.in ) );
-      System.out.print( "> " );
-      String line = console.readLine();
-      while( line != null ) {
-        if( line.equals( "exit" ) ) {
-          Runtime.getRuntime().halt( 0 );
-        }
-        sendImpl( line );
-        System.out.println( "< " + getReply() );
-        System.out.print( "< " );
-        line = console.readLine();
+    BufferedReader console = new BufferedReader( new InputStreamReader( System.in ) );
+    System.out.print( "> " );
+    String line = console.readLine();
+    while( line != null ) {
+      if( line.equals( "exit" ) ) {
+        Runtime.getRuntime().halt( 0 );
       }
-
-      close();
-
+      sendImpl( line );
+      System.out.println( "< " + getReply() );
+      System.out.print( "< " );
+      line = console.readLine();
     }
+
+    close();
 
   }
 
@@ -145,7 +148,7 @@ public class LineBufferClient implements AutoCloseable {
 
   public String toString() {
     if( isConnected() ) {
-      return "client connected to " + ( host != null ? host + ":" + port : socket.getInetAddress() );
+      return "client connected to " + inetSocketAddress;
     }
     else {
       return "unconnected client";

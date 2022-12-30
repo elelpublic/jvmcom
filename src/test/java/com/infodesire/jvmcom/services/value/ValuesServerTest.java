@@ -2,11 +2,13 @@ package com.infodesire.jvmcom.services.value;
 
 import com.infodesire.jvmcom.ServerConfig;
 import com.infodesire.jvmcom.clientserver.LineBufferClient;
+import com.infodesire.jvmcom.pool.SocketPool;
 import junit.framework.TestCase;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
@@ -21,7 +23,7 @@ public class ValuesServerTest {
 
 
   @Test
-  public void testStartupShutdown() throws IOException, InterruptedException {
+  public void testStartupShutdown() throws Exception {
 
     ServerConfig config = new ServerConfig();
     config.port = 0;
@@ -33,9 +35,8 @@ public class ValuesServerTest {
 
     int port = server.getPort();
 
-    try( LineBufferClient client = new LineBufferClient( "localhost", port ) ) {
+    try( LineBufferClient client = new LineBufferClient( new SocketPool(), "localhost", port ) ) {
 
-      client.connect( false );
       TestCase.assertTrue( client.ping() );
 
       server.stop( 100 );
@@ -50,7 +51,7 @@ public class ValuesServerTest {
   }
 
   @Test
-  public void testMapping() throws IOException {
+  public void testMapping() throws Exception {
 
     ServerConfig config = new ServerConfig();
     config.port = 0;
@@ -62,8 +63,7 @@ public class ValuesServerTest {
 
     int port = server.getPort();
 
-    ValueClient client = new ValueClient( "localhost", port );
-    client.connect( false );
+    ValueClient client = new ValueClient( new SocketPool(), new InetSocketAddress( "localhost", port ) );
 
     assertFalse( client.has( "main", "version" ) );
     assertEquals( 0, client.size( "main" ) );

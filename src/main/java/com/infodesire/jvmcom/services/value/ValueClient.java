@@ -1,17 +1,19 @@
 package com.infodesire.jvmcom.services.value;
 
 import com.infodesire.jvmcom.clientserver.LineBufferClient;
+import com.infodesire.jvmcom.pool.SocketPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 public class ValueClient extends LineBufferClient {
 
-  private static Logger logger = LoggerFactory.getLogger( "Client" );
+  private static final Logger logger = LoggerFactory.getLogger( "Client" );
 
-  public ValueClient( String host, int port ) {
-    super( host, port );
+  public ValueClient( SocketPool socketPool, InetSocketAddress inetSocketAddress ) throws Exception {
+    super( socketPool, inetSocketAddress );
   }
 
   public boolean has( String mapName, String valueName ) throws IOException {
@@ -23,7 +25,6 @@ public class ValueClient extends LineBufferClient {
         throw new ValueServerException( ValueError.UNKNOWN_ERROR, "Unknwon error in reply " + originalReply );
       }
       else {
-        String remainder = reply.substring( sep ).trim();
         reply = reply.substring( 0, sep );
         ValueError error = null;
         try {
@@ -70,9 +71,6 @@ public class ValueClient extends LineBufferClient {
         }
       }
     }
-    if( originalReply == null ) {
-      return originalReply;
-    }
     originalReply = originalReply.trim();
     return originalReply.length() == 0 ? null : originalReply;
   }
@@ -114,7 +112,7 @@ public class ValueClient extends LineBufferClient {
           error = ValueError.valueOf( reply );
         }
         catch( Exception ex ) {
-          throw new ValueServerException( error, "Unknwon error in reply " + originalReply );
+          throw new ValueServerException( ValueError.UNKNOWN_ERROR, "Unknwon error in reply " + originalReply );
         }
         if( error == ValueError.NO_SUCH_MAP ) {
           logger.debug( originalReply );
