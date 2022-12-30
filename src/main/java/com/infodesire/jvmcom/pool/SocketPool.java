@@ -1,12 +1,13 @@
 package com.infodesire.jvmcom.pool;
 
 import com.infodesire.jvmcom.mesh.NodeAddress;
-import org.apache.commons.pool2.KeyedObjectPool;
 import org.apache.commons.pool2.KeyedPooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.GenericKeyedObjectPool;
 import org.apache.commons.pool2.impl.GenericKeyedObjectPoolConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -27,8 +28,9 @@ import java.net.Socket;
  */
 public class SocketPool {
 
+  private static Logger logger = LoggerFactory.getLogger( "SocketPool" );
 
-  private KeyedObjectPool<NodeAddress, Socket> pool;
+  private GenericKeyedObjectPool<NodeAddress, Socket> pool;
 
   public SocketPool() {
     SocketFactory factory = new SocketFactory();
@@ -37,16 +39,18 @@ public class SocketPool {
     config.setTestOnReturn( true );
     config.setJmxEnabled( false );
     //config.setMaxTotal( 1000 );
-    config.setMaxTotalPerKey( 1000 );
+    config.setMaxTotalPerKey( 2000 );
     pool = new GenericKeyedObjectPool<NodeAddress, Socket>( factory, config );
   }
 
 
   public Socket getSocket( NodeAddress nodeAddress ) throws Exception {
-    return pool.borrowObject( nodeAddress );
+    logger.error( "borrow" );
+    return pool.borrowObject( nodeAddress, 2000 );
   }
 
   public void returnSocket( NodeAddress nodeAddress, Socket socket ) throws Exception {
+    logger.error( "return" );
     pool.returnObject( nodeAddress, socket );
   }
 

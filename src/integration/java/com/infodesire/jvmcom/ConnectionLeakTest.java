@@ -10,6 +10,8 @@ import com.infodesire.jvmcom.util.SocketUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileReader;
@@ -18,12 +20,17 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.Properties;
 
-public class ConnectionLeakFinder {
+public class ConnectionLeakTest {
 
     private MeshConfig config;
     private SocketPool socketPool;
     private Node node1, node2, node3;
     private Mesh mesh;
+
+    static {
+        System.setProperty( "org.slf4j.simpleLogger.defaultLogLevel", "warn" );
+    }
+    private static Logger logger = LoggerFactory.getLogger( "ConnectionLeakTest" );
 
     @Before
     public void setUp() throws Exception {
@@ -39,10 +46,10 @@ public class ConnectionLeakFinder {
         out.println( "nodes.node3.port=" + freePorts.next() );
         out.close();
 
-        System.out.println( "Using mesh config file: " + tempFile );
-        System.out.println( "-------------------------------------------------" );
-        System.out.println( FileUtils.readFile( tempFile ) );
-        System.out.println( "-------------------------------------------------" );
+        logger.debug( "Using mesh config file: " + tempFile );
+        logger.debug( "-------------------------------------------------" );
+        logger.debug( FileUtils.readFile( tempFile ) );
+        logger.debug( "-------------------------------------------------" );
 
         Properties properties = new Properties();
         properties.load( new FileReader( tempFile ) );
@@ -63,18 +70,21 @@ public class ConnectionLeakFinder {
         try {
             node1.shutDown( 500 );
         }
-        catch( Throwable ex ) {}
+        catch( Throwable ignored ) {
+        }
         try {
             node2.shutDown( 500 );
         }
-        catch( Throwable ex ) {}
+        catch( Throwable ignored ) {
+        }
         try {
             node3.shutDown( 500 );
         }
-        catch( Throwable ex ) {}
+        catch( Throwable ignored ) {
+        }
     }
 
-    @Test( timeout = 2000 )
+    @Test(timeout = 2000)
     public void testMultipleJoinLeave() throws IOException {
 
         long timeout = 500;
@@ -82,15 +92,15 @@ public class ConnectionLeakFinder {
         node1.join();
         node2.join();
 
-        for( int i = 0; i < 100; i++ ) {
-            System.out.println("BEFORE LEAVE " + i);
+        for( int i = 0; i < 600; i++ ) {
+            Thread.yield();
+            logger.debug( "BEFORE LEAVE " + i );
             node1.leave( timeout );
-            System.out.println("BEFORE JOIN " + i);
+            logger.debug( "BEFORE JOIN " + i );
             node1.join();
         }
 
         node1.leave( timeout );
-
         node2.leave( timeout );
 
     }
