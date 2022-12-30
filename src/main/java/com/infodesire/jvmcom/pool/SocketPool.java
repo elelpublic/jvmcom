@@ -42,29 +42,29 @@ public class SocketPool {
   }
 
 
-  public Socket getSocket( InetSocketAddress nodeAddress ) throws Exception {
-    logger.error( "borrow" );
-    return pool.borrowObject( nodeAddress, 2000 );
+  public Socket getSocket( InetSocketAddress address ) throws Exception {
+    //logger.error( "borrow" );
+    return pool.borrowObject( address, 2000 );
   }
 
-  public void returnSocket( InetSocketAddress nodeAddress, Socket socket ) throws Exception {
-    logger.error( "return" );
-    pool.returnObject( nodeAddress, socket );
+  public void returnSocket( InetSocketAddress address, Socket socket ) throws Exception {
+    //logger.error( "return" );
+    pool.returnObject( address, socket );
   }
 
 
   static class SocketFactory implements KeyedPooledObjectFactory<InetSocketAddress, Socket> {
 
     @Override
-    public void activateObject( InetSocketAddress nodeAddress, PooledObject<Socket> pooledObject ) throws Exception {
+    public void activateObject( InetSocketAddress address, PooledObject<Socket> pooledObject ) throws Exception {
       Socket socket = pooledObject.getObject();
       if( !socket.isConnected() ) {
-        socket.connect( new InetSocketAddress( nodeAddress.getHostName(), nodeAddress.getPort() ) );
+        socket.connect( new InetSocketAddress( address.getHostName(), address.getPort() ) );
       }
     }
 
     @Override
-    public void destroyObject( InetSocketAddress nodeAddress, PooledObject<Socket> pooledObject ) throws Exception {
+    public void destroyObject( InetSocketAddress address, PooledObject<Socket> pooledObject ) throws Exception {
       Socket socket = pooledObject.getObject();
       if( socket != null && socket.isConnected() ) {
         socket.close();
@@ -72,17 +72,17 @@ public class SocketPool {
     }
 
     @Override
-    public PooledObject<Socket> makeObject( InetSocketAddress nodeAddress ) throws Exception {
-      Socket socket = new Socket( nodeAddress.getHostName(), nodeAddress.getPort() );
+    public PooledObject<Socket> makeObject( InetSocketAddress address ) throws Exception {
+      Socket socket = new Socket( address.getHostName(), address.getPort() );
       return new DefaultPooledObject<>( socket );
     }
 
     @Override
-    public void passivateObject( InetSocketAddress nodeAddress, PooledObject<Socket> pooledObject ) throws Exception {
+    public void passivateObject( InetSocketAddress address, PooledObject<Socket> pooledObject ) throws Exception {
     }
 
     @Override
-    public boolean validateObject( InetSocketAddress nodeAddress, PooledObject<Socket> pooledObject ) {
+    public boolean validateObject( InetSocketAddress address, PooledObject<Socket> pooledObject ) {
       Socket socket = pooledObject.getObject();
       return !socket.isClosed() && socket.isConnected();
     }

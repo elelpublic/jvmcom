@@ -18,28 +18,25 @@ import java.net.Socket;
  */
 public class LineBufferClient implements AutoCloseable {
 
-
   private static final Logger logger = LoggerFactory.getLogger( "Client" );
   private final SocketPool socketPool;
-  private final InetSocketAddress inetSocketAddress;
+  private final InetSocketAddress address;
   private PrintWriter serverOut;
   private Socket socket;
   private BufferedReader in;
   private final long createdTime = System.currentTimeMillis();
 
-
   public LineBufferClient( SocketPool socketPool, String host, int port ) throws Exception {
     this( socketPool, new InetSocketAddress( host, port ) );
   }
-
 
   public LineBufferClient( SocketPool socketPool, NodeAddress nodeAddress ) throws Exception {
     this( socketPool, nodeAddress.getInetSocketAddress() );
   }
 
-  public LineBufferClient( SocketPool socketPool, InetSocketAddress inetSocketAddress ) throws Exception {
+  public LineBufferClient( SocketPool socketPool, InetSocketAddress address ) throws Exception {
     this.socketPool = socketPool;
-    this.inetSocketAddress = inetSocketAddress;
+    this.address = address;
     connect();
   }
 
@@ -50,12 +47,12 @@ public class LineBufferClient implements AutoCloseable {
   }
 
   private void connect() throws Exception {
-    logger.info( "Connecting to " + inetSocketAddress );
-    socket = socketPool.getSocket( inetSocketAddress );
+    logger.info( "Connecting to " + address );
+    socket = socketPool.getSocket( address );
     welcome();
   }
 
-  public void enterInteractiveMode() throws IOException {
+  public void enterInteractiveMode() throws Exception {
 
     logger.info( "Connected. Enter text to send now." );
 
@@ -118,10 +115,11 @@ public class LineBufferClient implements AutoCloseable {
     serverOut.flush();
   }
 
-  public void close() throws IOException {
+  public void close() throws Exception {
     logger.info( "Closing connection." );
     if( socket != null ) {
       socket.close();
+      socketPool.returnSocket( address, socket );
       socket = null;
     }
   }
@@ -148,7 +146,7 @@ public class LineBufferClient implements AutoCloseable {
 
   public String toString() {
     if( isConnected() ) {
-      return "client connected to " + inetSocketAddress;
+      return "client connected to " + address;
     }
     else {
       return "unconnected client";
