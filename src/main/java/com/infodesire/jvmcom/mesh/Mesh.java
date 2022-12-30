@@ -20,7 +20,7 @@ public class Mesh {
   private final MeshConfig config;
   private final SocketPool socketPool;
   private final Supplier<MessageHandler> messageHandlerFactory;
-  private Map<String, Node> nodes = new HashMap<>();
+  private final Map<String, Node> nodes = new HashMap<>();
 
   public Mesh( MeshConfig config, SocketPool socketPool, Supplier<MessageHandler> messageHandlerFactory ) {
     this.config = config;
@@ -63,7 +63,7 @@ public class Mesh {
     if( nodeConfig == null ) {
       throw new RuntimeException( "No node found for node id " + nodeId );
     }
-    return new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) );
+    return new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress().getInetSocketAddress() ) );
   }
 
 

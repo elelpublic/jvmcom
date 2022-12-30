@@ -30,7 +30,7 @@ import static com.infodesire.jvmcom.ConfigProperties.LEAVE_TIMEOUT_MS;
  */
 public class Node {
 
-  private static Logger logger = LoggerFactory.getLogger( "Mesh" );
+  private static final Logger logger = LoggerFactory.getLogger( "Mesh" );
 
   protected final MeshConfig meshConfig;
   final SocketPool socketPool;
@@ -78,7 +78,7 @@ public class Node {
     Set<NodeAddress> lostNodes = new HashSet<>();
     for( NodeAddress nodeAddress : activeMembers ) {
       if( !nodeAddress.equals( myAddress ) ) {
-        try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) ) ) {
+        try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress.getInetSocketAddress() ) ) ) {
           notifyJoin( client );
         }
         catch( Exception ex ) {
@@ -133,7 +133,7 @@ public class Node {
     for( NodeAddress nodeAddress : activeMembers ) {
       if( !lostNodes.contains( nodeAddress ) && !nodeAddress.equals( myAddress ) ) {
         for( NodeAddress lostNode : lostNodes ) {
-          try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) )  ) {
+          try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress.getInetSocketAddress() ) )  ) {
             notifyLost( client, lostNode );
           }
           catch( Exception ex ) {
@@ -157,7 +157,7 @@ public class Node {
     Set<NodeAddress> lostNodes = new HashSet<>();
     for( NodeAddress nodeAddress : activeMembers ) {
       if( !nodeAddress.equals( myAddress ) ) {
-        try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) ) )  {
+        try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress.getInetSocketAddress() ) ) )  {
           notifyLeave( client );
         }
         catch( Exception ex ) {
@@ -269,7 +269,7 @@ public class Node {
     StringJoiner replies = new StringJoiner( "\n" );
     for( NodeAddress nodeAddress : activeMembers ) {
       if( !nodeAddress.equals( myAddress ) ) {
-        try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) ) ) {
+        try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress.getInetSocketAddress() ) ) ) {
           CharSequence reply = client.send( "cast " + message );
           replies.add( nodeAddress.getName() + ": " + ( reply == null ? "" : reply.toString() ) );
         }
@@ -289,18 +289,13 @@ public class Node {
     for( NodeConfig nodeConfig : meshConfig.getNodes() ) {
       NodeAddress nodeAddress = nodeConfig.getAddress();
       if( !nodeAddress.equals( myAddress ) ) {
-        try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress ) );) {
+        try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeAddress.getInetSocketAddress() ) );) {
           String replyId = "" + ping( client );
-          if( replyId != null ) {
-            if( !replyId.equals( nodeAddress.getName() ) ) {
-              Mesh.logger.error( "Node " + nodeAddress + " replies with wrong id '" + replyId + "'. Will ignore this node." );
-            }
-            else {
-              activeMembers = activeMembers.plus( nodeAddress );
-            }
+          if( !replyId.equals( nodeAddress.getName() ) ) {
+            Mesh.logger.error( "Node " + nodeAddress + " replies with wrong id '" + replyId + "'. Will ignore this node." );
           }
           else {
-            Mesh.logger.debug( "No reply from " + nodeAddress );
+            activeMembers = activeMembers.plus( nodeAddress );
           }
         }
         catch( Exception ex ) {
@@ -457,7 +452,7 @@ public class Node {
 
     String nodeList = activeMembers
       .stream()
-      .map( nodeAddress -> nodeAddress.getName() )
+      .map( NodeAddress::getName )
       .collect( Collectors.joining( " " ) );
 
     return new HandlerReply( nodeList );
@@ -468,7 +463,7 @@ public class Node {
     return meshSocket != null;
   }
 
-  public void finalize() {
+  protected void finalize() {
     leave( LEAVE_TIMEOUT_MS );
   }
 

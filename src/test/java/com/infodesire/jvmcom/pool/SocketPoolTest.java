@@ -23,13 +23,13 @@ public class SocketPoolTest {
       new InetSocketAddress( "localhost", SocketUtils.getFreePort() ) );
     ServerSocket serverSocket = new ServerSocket( serverAddress.getInetSocketAddress().getPort() );
 
-    Socket socket = pool.getSocket( serverAddress );
+    Socket socket = pool.getSocket( serverAddress.getInetSocketAddress() );
     assertTrue( socket.isConnected() );
     assertFalse( socket.isClosed() );
 
-    pool.returnSocket( serverAddress, socket );
+    pool.returnSocket( serverAddress.getInetSocketAddress(), socket );
 
-    Socket pooledSocket = pool.getSocket( serverAddress );
+    Socket pooledSocket = pool.getSocket( serverAddress.getInetSocketAddress() );
     assertTrue( pooledSocket.isConnected() );
     assertFalse( pooledSocket.isClosed() );
     assertSame( socket, pooledSocket );
@@ -37,16 +37,16 @@ public class SocketPoolTest {
     // closed sockets will be evicted an a new one will be created
     pooledSocket.close();
 
-    pool.returnSocket( serverAddress, pooledSocket );
+    pool.returnSocket( serverAddress.getInetSocketAddress(), pooledSocket );
 
-    Socket newSocket = pool.getSocket( serverAddress );
+    Socket newSocket = pool.getSocket( serverAddress.getInetSocketAddress() );
     assertTrue( newSocket.isConnected() );
     assertFalse( newSocket.isClosed() );
     assertNotSame( newSocket, pooledSocket );
     assertNotSame( newSocket, socket );
 
     // a second socket
-    Socket secondSocket = pool.getSocket( serverAddress );
+    Socket secondSocket = pool.getSocket( serverAddress.getInetSocketAddress() );
     assertNotSame( newSocket, secondSocket );
 
 

@@ -19,7 +19,7 @@ import static com.infodesire.jvmcom.ConfigProperties.LEAVE_TIMEOUT_MS;
  */
 public class CliNode extends Node implements Runnable {
 
-  private static Logger logger = LoggerFactory.getLogger( "Mesh" );
+  private static final Logger logger = LoggerFactory.getLogger( "Mesh" );
 
   private final CompletableFuture<Void> background;
 
@@ -115,7 +115,7 @@ public class CliNode extends Node implements Runnable {
   private void services( String nodeName ) {
     NodeConfig nodeConfig = getNodeConfig( nodeName );
     if( nodeConfig != null ) {
-      try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) ) ) {
+      try( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress().getInetSocketAddress() ) ) ) {
         p( "Reply: " + services( client ) );
       }
       catch( Exception ex ) {
@@ -145,7 +145,7 @@ public class CliNode extends Node implements Runnable {
   private void ping( String nodeName ) {
     NodeConfig nodeConfig = getNodeConfig( nodeName );
     if( nodeConfig != null ) {
-      try ( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) ) ) {
+      try ( LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress().getInetSocketAddress() ) ) ) {
         CharSequence reply = ping( client );
         p( "Reply: " + reply );
       }
@@ -158,7 +158,7 @@ public class CliNode extends Node implements Runnable {
   private void dm( String nodeName, String message ) {
     NodeConfig nodeConfig = meshConfig.getNodeConfig( nodeName );
     try (
-      LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress() ) );
+      LineBufferClient client = new LineBufferClient( socketPool.getSocket( nodeConfig.getAddress().getInetSocketAddress() ) );
       ) {
       CharSequence reply = dm( client, message );
       p( "Reply: " + reply );
