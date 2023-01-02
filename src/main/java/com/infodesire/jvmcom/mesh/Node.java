@@ -1,8 +1,8 @@
 package com.infodesire.jvmcom.mesh;
 
 import com.infodesire.jvmcom.clientserver.HandlerReply;
-import com.infodesire.jvmcom.clientserver.LineBufferClient;
-import com.infodesire.jvmcom.clientserver.LineBufferHandler;
+import com.infodesire.jvmcom.clientserver.TextClient;
+import com.infodesire.jvmcom.clientserver.TextHandler;
 import com.infodesire.jvmcom.pool.SocketPool;
 import com.infodesire.jvmcom.services.Service;
 import com.infodesire.jvmcom.services.ServiceFactory;
@@ -81,7 +81,7 @@ public class Node {
     Set<NodeAddress> lostNodes = new HashSet<>();
     for( NodeAddress nodeAddress : activeMembers ) {
       if( !nodeAddress.equals( myAddress ) ) {
-        try( LineBufferClient client = new LineBufferClient( socketPool, nodeAddress.getInetSocketAddress() ) ) {
+        try( TextClient client = new TextClient( socketPool, nodeAddress.getInetSocketAddress() ) ) {
           notifyJoin( client );
         }
         catch( Exception ex ) {
@@ -137,7 +137,7 @@ public class Node {
     for( NodeAddress nodeAddress : activeMembers ) {
       if( !lostNodes.contains( nodeAddress ) && !nodeAddress.equals( myAddress ) ) {
         for( NodeAddress lostNode : lostNodes ) {
-          try( LineBufferClient client = new LineBufferClient( socketPool, nodeAddress )  ) {
+          try( TextClient client = new TextClient( socketPool, nodeAddress )  ) {
             notifyLost( client, lostNode );
           }
           catch( Exception ex ) {
@@ -161,7 +161,7 @@ public class Node {
     Set<NodeAddress> lostNodes = new HashSet<>();
     for( NodeAddress nodeAddress : activeMembers ) {
       if( !nodeAddress.equals( myAddress ) ) {
-        try( LineBufferClient client = new LineBufferClient( socketPool, nodeAddress ) )  {
+        try( TextClient client = new TextClient( socketPool, nodeAddress ) )  {
           notifyLeave( client );
         }
         catch( Exception ex ) {
@@ -194,7 +194,7 @@ public class Node {
    * @throws IOException when node could not be notified for network reasons
    *
    */
-  public void notifyJoin( LineBufferClient client ) throws IOException {
+  public void notifyJoin( TextClient client ) throws IOException {
     client.send( "join " + myName );
   }
 
@@ -205,7 +205,7 @@ public class Node {
    * @throws IOException when node could not be notified for network reasons
    *
    */
-  public void notifyLeave( LineBufferClient client ) throws IOException {
+  public void notifyLeave( TextClient client ) throws IOException {
     client.send( "leave " + myName );
   }
 
@@ -217,7 +217,7 @@ public class Node {
    * @throws IOException when node could not be notified for network reasons
    *
    */
-  public void notifyLost( LineBufferClient client, NodeAddress lostNode ) throws IOException {
+  public void notifyLost( TextClient client, NodeAddress lostNode ) throws IOException {
     client.send( "lost " + lostNode.getName() );
   }
 
@@ -229,7 +229,7 @@ public class Node {
    * @throws IOException when node could not be notified for network reasons
    *
    */
-  public CharSequence ping( LineBufferClient client ) throws IOException {
+  public CharSequence ping( TextClient client ) throws IOException {
     CharSequence reply = client.send( "ping" );
     return reply == null ? "" : reply;
   }
@@ -242,7 +242,7 @@ public class Node {
    * @throws IOException when node could not be notified for network reasons
    *
    */
-  public CharSequence services( LineBufferClient client ) throws IOException {
+  public CharSequence services( TextClient client ) throws IOException {
     CharSequence reply = client.send( "services" );
     return reply == null ? "" : reply;
   }
@@ -256,7 +256,7 @@ public class Node {
    * @throws IOException when node could not be notified for network reasons
    *
    */
-  public CharSequence dm( LineBufferClient client, String message ) throws IOException {
+  public CharSequence dm( TextClient client, String message ) throws IOException {
     CharSequence reply = client.send( "dm " + message );
     return reply == null ? "" : reply;
   }
@@ -273,7 +273,7 @@ public class Node {
     StringJoiner replies = new StringJoiner( "\n" );
     for( NodeAddress nodeAddress : activeMembers ) {
       if( !nodeAddress.equals( myAddress ) ) {
-        try( LineBufferClient client = new LineBufferClient( socketPool, nodeAddress ) ) {
+        try( TextClient client = new TextClient( socketPool, nodeAddress ) ) {
           CharSequence reply = client.send( "cast " + message );
           replies.add( nodeAddress.getName() + ": " + ( reply == null ? "" : reply.toString() ) );
         }
@@ -293,7 +293,7 @@ public class Node {
     for( NodeConfig nodeConfig : meshConfig.getNodes() ) {
       NodeAddress nodeAddress = nodeConfig.getAddress();
       if( !nodeAddress.equals( myAddress ) ) {
-        try( LineBufferClient client = new LineBufferClient( socketPool, nodeAddress ) ) {
+        try( TextClient client = new TextClient( socketPool, nodeAddress ) ) {
           String replyId = "" + ping( client );
           if( !replyId.equals( nodeAddress.getName() ) ) {
             Mesh.logger.error( "Node " + nodeAddress + " replies with wrong id '" + replyId + "'. Will ignore this node." );
@@ -330,7 +330,7 @@ public class Node {
   /**
    * Creates handler for incoming requests
    */
-  class HandlerFactory implements Supplier<LineBufferHandler> {
+  class HandlerFactory implements Supplier<TextHandler> {
 
     private final Mesh mesh;
     private final Supplier<MessageHandler> messageHandlerFactory;
@@ -341,7 +341,7 @@ public class Node {
     }
 
     @Override
-    public LineBufferHandler get() {
+    public TextHandler get() {
       return new RequestHandler( messageHandlerFactory.get() );
     }
 
@@ -350,7 +350,7 @@ public class Node {
   /**
    * Handles incoming meshing requests
    */
-  class RequestHandler implements LineBufferHandler {
+  class RequestHandler implements TextHandler {
 
     private final MessageHandler messageHandler;
     private InetSocketAddress senderAddress;

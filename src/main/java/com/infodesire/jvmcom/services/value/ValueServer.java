@@ -3,8 +3,8 @@ package com.infodesire.jvmcom.services.value;
 import com.infodesire.jvmcom.ServerConfig;
 import com.infodesire.jvmcom.SocketManager;
 import com.infodesire.jvmcom.clientserver.HandlerReply;
-import com.infodesire.jvmcom.clientserver.LineBufferHandler;
-import com.infodesire.jvmcom.clientserver.LineBufferServer;
+import com.infodesire.jvmcom.clientserver.TextHandler;
+import com.infodesire.jvmcom.clientserver.TextServer;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Pair;
@@ -28,7 +28,7 @@ public class ValueServer {
   private static Logger logger = LoggerFactory.getLogger( "Server" );
 
   private final ServerConfig config;
-  private final LineBufferServer server;
+  private final TextServer server;
   private ConcurrentHashMap<String, Map<String, String>> maps = new ConcurrentHashMap<>(
     10, // initial capacity
     0.8f, // load factor
@@ -46,17 +46,17 @@ public class ValueServer {
    */
   public ValueServer( ServerConfig config ) {
     this.config = config;
-    server = new LineBufferServer( config, new HandlerFactory() );
+    server = new TextServer( config, new HandlerFactory() );
   }
 
   public void start() throws IOException {
     server.start();
   }
 
-  class HandlerFactory implements Supplier<LineBufferHandler> {
+  class HandlerFactory implements Supplier<TextHandler> {
 
     @Override
-    public LineBufferHandler get() {
+    public TextHandler get() {
       return new MappedValuesHandler();
     }
 
@@ -75,7 +75,7 @@ public class ValueServer {
   }
 
 
-  class MappedValuesHandler implements LineBufferHandler {
+  class MappedValuesHandler implements TextHandler {
 
     private InetSocketAddress sender;
 

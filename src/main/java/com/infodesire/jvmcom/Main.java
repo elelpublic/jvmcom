@@ -1,6 +1,6 @@
 package com.infodesire.jvmcom;
 
-import com.infodesire.jvmcom.clientserver.LineBufferClient;
+import com.infodesire.jvmcom.clientserver.TextClient;
 import com.infodesire.jvmcom.mesh.*;
 import com.infodesire.jvmcom.pool.SocketPool;
 import com.infodesire.jvmcom.services.DefaultServiceFactory;
@@ -72,7 +72,7 @@ public class Main {
     }
     else if( command.equals( "client" ) ) {
       SocketPool socketPool = new SocketPool();
-      try( LineBufferClient client = new LineBufferClient( socketPool, new InetSocketAddress( host, port ) ) ) {
+      try( TextClient client = new TextClient( socketPool, new InetSocketAddress( host, port ) ) ) {
         client.enterInteractiveMode();
       }
     }

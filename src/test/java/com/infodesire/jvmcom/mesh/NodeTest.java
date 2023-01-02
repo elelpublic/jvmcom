@@ -1,6 +1,6 @@
 package com.infodesire.jvmcom.mesh;
 
-import com.infodesire.jvmcom.clientserver.LineBufferClient;
+import com.infodesire.jvmcom.clientserver.TextClient;
 import com.infodesire.jvmcom.pool.SocketPool;
 import com.infodesire.jvmcom.services.DefaultServiceFactory;
 import com.infodesire.jvmcom.util.FileUtils;
@@ -88,8 +88,8 @@ public class NodeTest {
     node2.join();
 
     try(
-      LineBufferClient client1 = new LineBufferClient( socketPool, node2.getAddress() );
-      LineBufferClient client2 = new LineBufferClient( socketPool, node1.getAddress() );
+            TextClient client1 = new TextClient( socketPool, node2.getAddress() );
+            TextClient client2 = new TextClient( socketPool, node1.getAddress() );
     ) {
 
       assertEquals( "node2", "" + node1.ping( client1 ) );
@@ -155,7 +155,7 @@ public class NodeTest {
     node2.join();
     node3.join();
 
-    LineBufferClient client = new LineBufferClient( socketPool, node2.getAddress() );
+    TextClient client = new TextClient( socketPool, node2.getAddress() );
     assertEquals( "OK", "" + node1.dm( client, "hi" ) );
     assertEquals( "", "node2: OK\nnode3: OK", node1.cast( "hello all" ) );
 

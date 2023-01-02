@@ -1,6 +1,6 @@
 package com.infodesire.jvmcom;
 
-import com.infodesire.jvmcom.clientserver.LineBufferClient;
+import com.infodesire.jvmcom.clientserver.TextClient;
 import com.infodesire.jvmcom.pool.SocketPool;
 import com.infodesire.jvmcom.services.value.ValueServer;
 import org.junit.Test;
@@ -33,7 +33,7 @@ public class PerformanceTest {
     server.start();
     int port = server.getPort();
 
-    try( LineBufferClient client = new LineBufferClient( new SocketPool(), "127.0.0.1", port ) ) {
+    try( TextClient client = new TextClient( new SocketPool(), "127.0.0.1", port ) ) {
 
       reply = client.send( "put main version 1" );
       assertEquals( "OK", reply.toString() );
@@ -57,7 +57,7 @@ public class PerformanceTest {
 
     int port = server.getPort();
 
-    LineBufferClient client = new LineBufferClient( new SocketPool(), "127.0.0.1", port );
+    TextClient client = new TextClient( new SocketPool(), "127.0.0.1", port );
 
     for( int i = 0; i < DATA_SIZE; i++ ) {
       client.send( "put main v-" + i + " " + i );

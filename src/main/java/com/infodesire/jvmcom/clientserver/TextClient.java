@@ -16,7 +16,7 @@ import java.net.Socket;
  * Client to a LineBufferServer, sending one line of text at a time.
  *
  */
-public class LineBufferClient implements AutoCloseable {
+public class TextClient implements AutoCloseable {
 
   private static final Logger logger = LoggerFactory.getLogger( "Client" );
   private final SocketPool socketPool;
@@ -26,15 +26,15 @@ public class LineBufferClient implements AutoCloseable {
   private BufferedReader in;
   private final long createdTime = System.currentTimeMillis();
 
-  public LineBufferClient( SocketPool socketPool, String host, int port ) throws Exception {
+  public TextClient( SocketPool socketPool, String host, int port ) throws Exception {
     this( socketPool, new InetSocketAddress( host, port ) );
   }
 
-  public LineBufferClient( SocketPool socketPool, NodeAddress nodeAddress ) throws Exception {
+  public TextClient( SocketPool socketPool, NodeAddress nodeAddress ) throws Exception {
     this( socketPool, nodeAddress.getInetSocketAddress() );
   }
 
-  public LineBufferClient( SocketPool socketPool, InetSocketAddress address ) throws Exception {
+  public TextClient( SocketPool socketPool, InetSocketAddress address ) throws Exception {
     this.socketPool = socketPool;
     this.address = address;
     connect();

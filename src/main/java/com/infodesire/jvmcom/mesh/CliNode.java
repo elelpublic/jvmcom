@@ -1,6 +1,6 @@
 package com.infodesire.jvmcom.mesh;
 
-import com.infodesire.jvmcom.clientserver.LineBufferClient;
+import com.infodesire.jvmcom.clientserver.TextClient;
 import com.infodesire.jvmcom.pool.SocketPool;
 import com.infodesire.jvmcom.services.ServiceFactory;
 import org.slf4j.Logger;
@@ -117,7 +117,7 @@ public class CliNode extends Node implements Runnable {
   private void services( String nodeName ) {
     NodeConfig nodeConfig = getNodeConfig( nodeName );
     if( nodeConfig != null ) {
-      try( LineBufferClient client = new LineBufferClient( socketPool, nodeConfig.getAddress() ) ) {
+      try( TextClient client = new TextClient( socketPool, nodeConfig.getAddress() ) ) {
         p( "Reply: " + services( client ) );
       }
       catch( Exception ex ) {
@@ -147,7 +147,7 @@ public class CliNode extends Node implements Runnable {
   private void ping( String nodeName ) {
     NodeConfig nodeConfig = getNodeConfig( nodeName );
     if( nodeConfig != null ) {
-      try ( LineBufferClient client = new LineBufferClient( socketPool, nodeConfig.getAddress() ) ) {
+      try ( TextClient client = new TextClient( socketPool, nodeConfig.getAddress() ) ) {
         CharSequence reply = ping( client );
         p( "Reply: " + reply );
       }
@@ -159,7 +159,7 @@ public class CliNode extends Node implements Runnable {
 
   private void dm( String nodeName, String message ) {
     NodeConfig nodeConfig = meshConfig.getNodeConfig( nodeName );
-    try ( LineBufferClient client = new LineBufferClient( socketPool, nodeConfig.getAddress() ) ) {
+    try ( TextClient client = new TextClient( socketPool, nodeConfig.getAddress() ) ) {
       CharSequence reply = dm( client, message );
       p( "Reply: " + reply );
     }

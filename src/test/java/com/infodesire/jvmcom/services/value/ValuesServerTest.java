@@ -1,13 +1,12 @@
 package com.infodesire.jvmcom.services.value;
 
 import com.infodesire.jvmcom.ServerConfig;
-import com.infodesire.jvmcom.clientserver.LineBufferClient;
+import com.infodesire.jvmcom.clientserver.TextClient;
 import com.infodesire.jvmcom.pool.SocketPool;
 import junit.framework.TestCase;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import static junit.framework.TestCase.assertEquals;
@@ -35,7 +34,7 @@ public class ValuesServerTest {
 
     int port = server.getPort();
 
-    try( LineBufferClient client = new LineBufferClient( new SocketPool(), "localhost", port ) ) {
+    try( TextClient client = new TextClient( new SocketPool(), "localhost", port ) ) {
 
       TestCase.assertTrue( client.ping() );
 

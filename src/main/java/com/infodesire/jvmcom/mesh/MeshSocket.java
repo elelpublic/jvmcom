@@ -1,8 +1,8 @@
 package com.infodesire.jvmcom.mesh;
 
 import com.infodesire.jvmcom.ServerConfig;
-import com.infodesire.jvmcom.clientserver.LineBufferHandler;
-import com.infodesire.jvmcom.clientserver.LineBufferServer;
+import com.infodesire.jvmcom.clientserver.TextHandler;
+import com.infodesire.jvmcom.clientserver.TextServer;
 
 import java.io.IOException;
 import java.util.function.Supplier;
@@ -13,13 +13,13 @@ import java.util.function.Supplier;
  */
 public class MeshSocket {
 
-  private final LineBufferServer server;
+  private final TextServer server;
   private final NodeAddress myAddress;
 
-  public MeshSocket( NodeAddress myAddress, Supplier<LineBufferHandler> handlerFactory ) throws IOException {
+  public MeshSocket( NodeAddress myAddress, Supplier<TextHandler> handlerFactory ) throws IOException {
     this.myAddress = myAddress;
     ServerConfig config = new ServerConfig( myAddress.getInetSocketAddress().getPort() );
-    server = new LineBufferServer( config, handlerFactory );
+    server = new TextServer( config, handlerFactory );
     server.start();
   }
 

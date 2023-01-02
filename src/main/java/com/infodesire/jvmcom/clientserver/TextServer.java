@@ -24,9 +24,9 @@ import java.util.function.Supplier;
  * Workers will process client data on a line by line basis.
  *
  */
-public class LineBufferServer {
+public class TextServer {
 
-  private final Supplier<LineBufferHandler> handlerFactory;
+  private final Supplier<TextHandler> handlerFactory;
   private final ServerConfig config;
   private int localPort = 0;
   private SocketManager serverSocketManager;
@@ -43,8 +43,8 @@ public class LineBufferServer {
    * @param handlerFactory Creates handlers for incoming socket connections
    *
    */
-  public LineBufferServer( ServerConfig config,
-                           Supplier<LineBufferHandler> handlerFactory ) {
+  public TextServer( ServerConfig config,
+                     Supplier<TextHandler> handlerFactory ) {
     
     this.config = config;
     this.handlerFactory = handlerFactory;
@@ -95,10 +95,10 @@ public class LineBufferServer {
 
   class WorkerFactory implements Supplier<ServerWorker> {
 
-    private final Supplier<LineBufferHandler> handlerFactory;
+    private final Supplier<TextHandler> handlerFactory;
     private String threadName;
 
-    WorkerFactory( String threadName, Supplier<LineBufferHandler> handlerFactory ) {
+    WorkerFactory( String threadName, Supplier<TextHandler> handlerFactory ) {
       this.threadName = threadName;
       this.handlerFactory = handlerFactory;
     }
@@ -113,11 +113,11 @@ public class LineBufferServer {
   class Worker implements ServerWorker {
 
     private final String threadName;
-    private final LineBufferHandler handler;
+    private final TextHandler handler;
     private PrintWriter writer;
     private boolean stopRequest = false;
 
-    Worker( String threadName, LineBufferHandler lineBufferHandler ) {
+    Worker( String threadName, TextHandler lineBufferHandler ) {
 
       this.threadName = threadName;
       this.handler = lineBufferHandler;

@@ -1,6 +1,6 @@
 package com.infodesire.jvmcom.services.value;
 
-import com.infodesire.jvmcom.clientserver.LineBufferClient;
+import com.infodesire.jvmcom.clientserver.TextClient;
 import com.infodesire.jvmcom.pool.SocketPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-public class ValueClient extends LineBufferClient {
+public class ValueClient extends TextClient {
 
   private static final Logger logger = LoggerFactory.getLogger( "Client" );
 

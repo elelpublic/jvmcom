@@ -1,6 +1,6 @@
 package com.infodesire.jvmcom.services.logging;
 
-import com.infodesire.jvmcom.clientserver.LineBufferClient;
+import com.infodesire.jvmcom.clientserver.TextClient;
 import com.infodesire.jvmcom.pool.SocketPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +15,7 @@ import java.net.InetSocketAddress;
 public class LoggingClient implements AutoCloseable {
 
   private static final Logger localLog = LoggerFactory.getLogger( "Logging" );
-  private final LineBufferClient client;
+  private final TextClient client;
   private Level remoteLevel = Level.INFO;
   private int logCounter = 0;
 
@@ -28,7 +28,7 @@ public class LoggingClient implements AutoCloseable {
    *
    */
   public LoggingClient( SocketPool socketPool, InetSocketAddress inetSocketAddress, String log ) throws Exception {
-    client = new LineBufferClient( socketPool, inetSocketAddress );
+    client = new TextClient( socketPool, inetSocketAddress );
     updateLevel();
   }
 

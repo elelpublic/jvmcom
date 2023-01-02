@@ -1,22 +1,22 @@
 package com.infodesire.jvmcom.services.logging;
 
 import com.infodesire.jvmcom.ServerConfig;
-import com.infodesire.jvmcom.clientserver.LineBufferHandler;
-import com.infodesire.jvmcom.clientserver.LineBufferServer;
+import com.infodesire.jvmcom.clientserver.TextHandler;
+import com.infodesire.jvmcom.clientserver.TextServer;
 import com.infodesire.jvmcom.services.Service;
 
 import java.io.IOException;
 import java.util.function.Supplier;
 
-public class LoggingService implements Service, AutoCloseable, Supplier<LineBufferHandler> {
+public class LoggingService implements Service, AutoCloseable, Supplier<TextHandler> {
 
-  private final LineBufferServer server;
+  private final TextServer server;
   private final Supplier<LoggingHandler> handlerFactory;
 
   public LoggingService( int port, Supplier<LoggingHandler> handlerFactory ) {
     ServerConfig config = new ServerConfig( port );
     this.handlerFactory = handlerFactory;
-    server = new LineBufferServer( config, this );
+    server = new TextServer( config, this );
   }
 
   @Override
@@ -40,7 +40,7 @@ public class LoggingService implements Service, AutoCloseable, Supplier<LineBuff
   }
 
   @Override
-  public LineBufferHandler get() {
+  public TextHandler get() {
     return handlerFactory.get();
   }
 

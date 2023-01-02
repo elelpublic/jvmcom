@@ -1,8 +1,8 @@
 package com.infodesire.jvmcom.services;
 
 import com.infodesire.jvmcom.ServerConfig;
-import com.infodesire.jvmcom.clientserver.LineBufferHandler;
-import com.infodesire.jvmcom.clientserver.LineBufferServer;
+import com.infodesire.jvmcom.clientserver.TextHandler;
+import com.infodesire.jvmcom.clientserver.TextServer;
 
 import java.util.function.Supplier;
 
@@ -12,16 +12,16 @@ import java.util.function.Supplier;
  * It handles messages which can be expressed in text strings.
  *
  */
-public abstract class TextService implements Service, Supplier<LineBufferHandler> {
+public abstract class TextService implements Service, Supplier<TextHandler> {
 
-  private final LineBufferServer server;
+  private final TextServer server;
   private final ServerConfig serverConfig;
   private final String name;
 
   TextService( String name, ServerConfig serverConfig ) {
     this.name = name;
     this.serverConfig = serverConfig;
-    server = new LineBufferServer( serverConfig, this );
+    server = new TextServer( serverConfig, this );
   }
 
   @Override

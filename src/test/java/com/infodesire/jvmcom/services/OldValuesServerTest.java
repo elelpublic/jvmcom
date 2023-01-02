@@ -1,6 +1,6 @@
 package com.infodesire.jvmcom.services;
 
-import com.infodesire.jvmcom.clientserver.LineBufferClient;
+import com.infodesire.jvmcom.clientserver.TextClient;
 import com.infodesire.jvmcom.pool.SocketPool;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -27,7 +27,7 @@ public class OldValuesServerTest {
 
     int port = server.getPort();
 
-    try( LineBufferClient client = new LineBufferClient( new SocketPool(), "localhost", port ) ) {
+    try( TextClient client = new TextClient( new SocketPool(), "localhost", port ) ) {
 
       assertTrue( client.ping() );
 

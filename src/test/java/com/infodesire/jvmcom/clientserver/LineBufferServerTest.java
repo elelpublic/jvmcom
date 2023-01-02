@@ -15,10 +15,10 @@ public class LineBufferServerTest {
   @Test
   public void testNullReply() throws Exception {
     ServerConfig config = new ServerConfig();
-    Supplier<LineBufferHandler> handlerFactory = new EmptyHandlerFactory();
-    LineBufferServer server = new LineBufferServer( config, handlerFactory );
+    Supplier<TextHandler> handlerFactory = new EmptyHandlerFactory();
+    TextServer server = new TextServer( config, handlerFactory );
     server.start();
-    try( LineBufferClient client = new LineBufferClient( new SocketPool(), "localhost", server.getPort() ) ) {
+    try( TextClient client = new TextClient( new SocketPool(), "localhost", server.getPort() ) ) {
       assertEquals( "", "" + client.send( "hello" ) );
     }
   }
@@ -26,35 +26,35 @@ public class LineBufferServerTest {
   @Test
   public void testEchoReply() throws Exception {
     ServerConfig config = new ServerConfig();
-    Supplier<LineBufferHandler> handlerFactory = new EchoHandlerFactory();
-    LineBufferServer server = new LineBufferServer( config, handlerFactory );
+    Supplier<TextHandler> handlerFactory = new EchoHandlerFactory();
+    TextServer server = new TextServer( config, handlerFactory );
     server.start();
-    try( LineBufferClient client = new LineBufferClient( new SocketPool(), "localhost", server.getPort() ) ) {
+    try( TextClient client = new TextClient( new SocketPool(), "localhost", server.getPort() ) ) {
       assertEquals( "Hello World!", "" + client.send( "Hello World!" ) );
     }
   }
 
 
-  static class EmptyHandlerFactory implements Supplier<LineBufferHandler> {
-    public LineBufferHandler get() {
+  static class EmptyHandlerFactory implements Supplier<TextHandler> {
+    public TextHandler get() {
       return new EmptyReply();
     }
   }
 
-  static class EchoHandlerFactory implements Supplier<LineBufferHandler> {
-    public LineBufferHandler get() {
+  static class EchoHandlerFactory implements Supplier<TextHandler> {
+    public TextHandler get() {
       return new EchoReply();
     }
   }
 
-  static class EmptyReply implements LineBufferHandler {
+  static class EmptyReply implements TextHandler {
     public void setSender( InetSocketAddress senderAddress ) {}
     public HandlerReply process( String line ) {
       return null;
     }
   }
 
-  static class EchoReply implements LineBufferHandler {
+  static class EchoReply implements TextHandler {
     public void setSender( InetSocketAddress senderAddress ) {}
     public HandlerReply process( String line ) {
       return new HandlerReply( line );
