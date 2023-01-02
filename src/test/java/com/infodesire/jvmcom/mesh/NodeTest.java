@@ -2,6 +2,7 @@ package com.infodesire.jvmcom.mesh;
 
 import com.infodesire.jvmcom.clientserver.LineBufferClient;
 import com.infodesire.jvmcom.pool.SocketPool;
+import com.infodesire.jvmcom.services.DefaultServiceFactory;
 import com.infodesire.jvmcom.util.FileUtils;
 import com.infodesire.jvmcom.util.SocketUtils;
 import org.junit.After;
@@ -56,7 +57,7 @@ public class NodeTest {
 
     socketPool = new SocketPool();
 
-    Mesh mesh = new Mesh( config, socketPool, new PrintMessageHandlerFactory() );
+    Mesh mesh = new Mesh( config, socketPool, new PrintMessageHandlerFactory(), new DefaultServiceFactory() );
 
     node1 = mesh.get( "node1" );
     node2 = mesh.get( "node2" );

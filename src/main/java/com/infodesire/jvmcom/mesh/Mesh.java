@@ -2,6 +2,7 @@ package com.infodesire.jvmcom.mesh;
 
 import com.infodesire.jvmcom.clientserver.LineBufferClient;
 import com.infodesire.jvmcom.pool.SocketPool;
+import com.infodesire.jvmcom.services.ServiceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,11 +22,14 @@ public class Mesh {
   private final SocketPool socketPool;
   private final Supplier<MessageHandler> messageHandlerFactory;
   private final Map<String, Node> nodes = new HashMap<>();
+  private final ServiceFactory serviceFactory;
 
-  public Mesh( MeshConfig config, SocketPool socketPool, Supplier<MessageHandler> messageHandlerFactory ) {
+  public Mesh( MeshConfig config, SocketPool socketPool, Supplier<MessageHandler> messageHandlerFactory,
+               ServiceFactory serviceFactory ) {
     this.config = config;
     this.socketPool = socketPool;
     this.messageHandlerFactory = messageHandlerFactory;
+    this.serviceFactory = serviceFactory;
   }
 
   public MeshConfig getConfig() {
@@ -46,7 +50,7 @@ public class Mesh {
     }
     Node node = nodes.get( nodeId );
     if( node == null ) {
-      node = new Node( this, nodeConfig, socketPool, messageHandlerFactory );
+      node = new Node( this, nodeConfig, socketPool, messageHandlerFactory, serviceFactory );
       nodes.put( nodeId, node );
     }
     return node;

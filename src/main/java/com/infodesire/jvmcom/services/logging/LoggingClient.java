@@ -16,7 +16,8 @@ public class LoggingClient implements AutoCloseable {
 
   private static final Logger localLog = LoggerFactory.getLogger( "Logging" );
   private final LineBufferClient client;
-  private final Level level = Level.INFO;
+  private Level remoteLevel = Level.INFO;
+  private int logCounter = 0;
 
   /**
    * Create logger which is a client to a remote logging service
@@ -35,9 +36,16 @@ public class LoggingClient implements AutoCloseable {
    * Ask for current log level of the remote server
    */
   public void updateLevel() {
-
     try {
-      client.send( "level" );
+      CharSequence levelName = client.send( "level" );
+      if( levelName != null ) {
+        try {
+          remoteLevel = Level.valueOf( "" + levelName );
+        }
+        catch( Exception ex ) {
+          localLog.error( "Invalid level sent from server: " + levelName );
+        }
+      }
     }
     catch( IOException ex ) {
       localLog.error( "Error requesting log level via " + client.toString() );
@@ -48,12 +56,39 @@ public class LoggingClient implements AutoCloseable {
    * @return Log level at the loggging server
    */
   public Level getLevel() {
-    return level;
+    return remoteLevel;
   }
 
   @Override
   public void close() throws Exception {
     client.close();
+  }
+
+  public void log( Level level, String line ) {
+    if( level.isAtLeast( remoteLevel ) ) {
+      try {
+        CharSequence levelName = client.send( "log " + line );
+        logCounter = 0;
+        if( levelName != null ) {
+          try {
+            remoteLevel = Level.valueOf( "" + levelName );
+          }
+          catch( Exception ex ) {
+            localLog.error( "Invalid level sent from server: " + levelName );
+          }
+        }
+      }
+      catch( IOException ex ) {
+        localLog.error( "Error sending log message to remote logger.", ex );
+      }
+    }
+    else {
+      // after some time not logging, because log level to low, get an update on the log level from server
+      if( logCounter++ > 1000 ) {
+        logCounter = 0;
+        updateLevel();
+      }
+    }
   }
 
 }

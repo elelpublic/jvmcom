@@ -5,7 +5,7 @@ import com.infodesire.jvmcom.clientserver.LineBufferClient;
 import com.infodesire.jvmcom.clientserver.LineBufferHandler;
 import com.infodesire.jvmcom.pool.SocketPool;
 import com.infodesire.jvmcom.services.Service;
-import com.infodesire.jvmcom.services.logging.LoggingService;
+import com.infodesire.jvmcom.services.ServiceFactory;
 import org.pcollections.HashTreePMap;
 import org.pcollections.PMap;
 import org.pcollections.PSortedSet;
@@ -39,11 +39,13 @@ public class Node {
   protected final NodeAddress myAddress;
   protected final String myName;
   private final Supplier<MessageHandler> messageHandlerFactory;
+  private final ServiceFactory serviceFactory;
   protected PSortedSet<NodeAddress> activeMembers = TreePSet.empty();
   private MeshSocket meshSocket;
   private PMap<String, Service> services = HashTreePMap.empty();
 
-  public Node( Mesh mesh, NodeConfig config, SocketPool socketPool, Supplier<MessageHandler> messageHandlerFactory ) {
+  public Node( Mesh mesh, NodeConfig config, SocketPool socketPool, Supplier<MessageHandler> messageHandlerFactory
+          , ServiceFactory serviceFactory ) {
     this.mesh = mesh;
     this.meshConfig = mesh.getConfig();
     this.config = config;
@@ -51,6 +53,7 @@ public class Node {
     myName = myAddress.getName();
     this.socketPool = socketPool;
     this.messageHandlerFactory = messageHandlerFactory;
+    this.serviceFactory = serviceFactory;
     logger.info( "Create mesh node on " + myAddress );
     if( config.getAutojoin() ) {
       try {
@@ -99,12 +102,13 @@ public class Node {
     for( String serviceName : config.getServices() ) {
 
       ServiceConfig serviceConfig = config.getService( serviceName );
+      Service service = serviceFactory.create( serviceConfig.getPort(), serviceName );
       
-      if( serviceName.equals( "logging" ) ) {
-
-        LoggingService loggingService = new LoggingService( serviceConfig.getPort() );
-        services = services.plus( serviceName, loggingService );
-
+      if( service != null ) {
+        services = services.plus( serviceName, service );
+      }
+      else {
+        logger.error( "Unknown service: " + serviceName );
       }
 
     }

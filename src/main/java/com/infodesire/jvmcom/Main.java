@@ -3,6 +3,8 @@ package com.infodesire.jvmcom;
 import com.infodesire.jvmcom.clientserver.LineBufferClient;
 import com.infodesire.jvmcom.mesh.*;
 import com.infodesire.jvmcom.pool.SocketPool;
+import com.infodesire.jvmcom.services.DefaultServiceFactory;
+import com.infodesire.jvmcom.services.ServiceFactory;
 import com.infodesire.jvmcom.services.value.ValueServer;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.SystemUtils;
@@ -93,8 +95,9 @@ public class Main {
       }
       SocketPool socketPool = new SocketPool();
       PrintMessageHandlerFactory messageHandlerFactory = new PrintMessageHandlerFactory();
-      Mesh mesh = new Mesh( config, socketPool, messageHandlerFactory );
-      new CliNode( mesh, nodeConfig, socketPool, messageHandlerFactory ).waitForShutDown();
+      ServiceFactory serviceFactory = new DefaultServiceFactory();
+      Mesh mesh = new Mesh( config, socketPool, messageHandlerFactory, serviceFactory );
+      new CliNode( mesh, nodeConfig, socketPool, messageHandlerFactory, serviceFactory ).waitForShutDown();
     }
     else {
       showUsage( "Unknown command: " + command );

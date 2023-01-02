@@ -5,6 +5,7 @@ import com.infodesire.jvmcom.mesh.MeshConfig;
 import com.infodesire.jvmcom.mesh.Node;
 import com.infodesire.jvmcom.mesh.PrintMessageHandlerFactory;
 import com.infodesire.jvmcom.pool.SocketPool;
+import com.infodesire.jvmcom.services.DefaultServiceFactory;
 import com.infodesire.jvmcom.util.FileUtils;
 import com.infodesire.jvmcom.util.SocketUtils;
 import org.junit.After;
@@ -57,7 +58,7 @@ public class ConnectionLeakTest {
 
         socketPool = new SocketPool();
 
-        mesh = new Mesh( config, socketPool, new PrintMessageHandlerFactory() );
+        mesh = new Mesh( config, socketPool, new PrintMessageHandlerFactory(), new DefaultServiceFactory() );
 
         node1 = mesh.get( "node1" );
         node2 = mesh.get( "node2" );

@@ -8,12 +8,14 @@ import com.infodesire.jvmcom.services.Service;
 import java.io.IOException;
 import java.util.function.Supplier;
 
-public class LoggingService implements Service, Supplier<LineBufferHandler>, AutoCloseable {
+public class LoggingService implements Service, AutoCloseable, Supplier<LineBufferHandler> {
 
   private final LineBufferServer server;
+  private final Supplier<LoggingHandler> handlerFactory;
 
-  public LoggingService( int port ) {
+  public LoggingService( int port, Supplier<LoggingHandler> handlerFactory ) {
     ServerConfig config = new ServerConfig( port );
+    this.handlerFactory = handlerFactory;
     server = new LineBufferServer( config, this );
   }
 
@@ -39,7 +41,7 @@ public class LoggingService implements Service, Supplier<LineBufferHandler>, Aut
 
   @Override
   public LineBufferHandler get() {
-    return new LoggingHandler();
+    return handlerFactory.get();
   }
 
   @Override

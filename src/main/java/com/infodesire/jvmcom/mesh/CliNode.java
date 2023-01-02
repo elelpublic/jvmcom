@@ -2,6 +2,7 @@ package com.infodesire.jvmcom.mesh;
 
 import com.infodesire.jvmcom.clientserver.LineBufferClient;
 import com.infodesire.jvmcom.pool.SocketPool;
+import com.infodesire.jvmcom.services.ServiceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,8 +24,9 @@ public class CliNode extends Node implements Runnable {
 
   private final CompletableFuture<Void> background;
 
-  public CliNode( Mesh mesh, NodeConfig config, SocketPool socketPool, Supplier<MessageHandler> messageHandlerFactory ) {
-    super( mesh, config, socketPool, messageHandlerFactory );
+  public CliNode( Mesh mesh, NodeConfig config, SocketPool socketPool, Supplier<MessageHandler> messageHandlerFactory,
+                  ServiceFactory serviceFactory ) {
+    super( mesh, config, socketPool, messageHandlerFactory, serviceFactory );
     background = CompletableFuture.runAsync( this );
   }
 
