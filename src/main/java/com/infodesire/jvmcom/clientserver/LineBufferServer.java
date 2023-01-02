@@ -81,11 +81,15 @@ public class LineBufferServer {
   }
 
   public void stop( long timeoutMs ) throws InterruptedException {
-    serverSocketManager.stop( timeoutMs );
+    if( serverSocketManager != null ) {
+      serverSocketManager.stop( timeoutMs );
+    }
   }
 
   public void waitForShutDown() throws InterruptedException {
-    serverSocketManager.waitForShutDown();
+    if( serverSocketManager != null ) {
+      serverSocketManager.waitForShutDown();
+    }
   }
 
 
@@ -132,7 +136,7 @@ public class LineBufferServer {
 
       InetAddress senderAddress = socket.getInetAddress();
 
-      logger.info( "Accepted new connection." );
+      logger.debug( "Accepted new connection." );
       InputStream in = null;
       OutputStream out = null;
       try {
@@ -145,10 +149,12 @@ public class LineBufferServer {
           String line = null;
           try {
             line = reader.readLine();
-            logger.info( "Client request: '" + line + "'" );
-            HandlerReply reply = handler.process( line );
-            send( reply == null ? "" : reply.replyText );
-            stopRequest = !reply.continueProcessing;
+            if( line != null ) {
+              logger.info( "Client request: '" + line + "'" );
+              HandlerReply reply = handler.process( line );
+              send( reply == null ? "" : reply.replyText );
+              stopRequest = !reply.continueProcessing;
+            }
           }
           catch( IOException ex ) {}
           if( line == null ) {
@@ -174,7 +180,7 @@ public class LineBufferServer {
           catch( IOException ex ) {}
         }
       }
-      logger.info( "Connection closed." );
+      logger.debug( "Connection closed." );
     }
 
     private void send( String line ) {

@@ -47,7 +47,7 @@ public class LineBufferClient implements AutoCloseable {
   }
 
   private void connect() throws Exception {
-    logger.info( "Connecting to " + address );
+    logger.debug( "Connecting to " + address );
     socket = socketPool.getSocket( address );
     welcome();
   }
@@ -116,7 +116,7 @@ public class LineBufferClient implements AutoCloseable {
   }
 
   public void close() throws Exception {
-    logger.info( "Closing connection." );
+    logger.debug( "Closing connection." );
     if( socket != null ) {
       socket.close();
       socketPool.returnSocket( address, socket );
