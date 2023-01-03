@@ -2,16 +2,10 @@ package com.infodesire.jvmcom;
 
 import org.junit.Test;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.net.InetSocketAddress;
+import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static junit.framework.TestCase.assertTrue;
@@ -86,12 +80,14 @@ public class SocketManagerTest {
   }
 
 
-  class Client {
+  static class Client implements AutoCloseable {
 
     PrintWriter out;
     BufferedReader in;
+    Socket clientSocket;
+
     Client( String host, int port ) throws IOException {
-      Socket clientSocket = new Socket( host, port );
+      clientSocket = new Socket( host, port );
       out = new PrintWriter( new OutputStreamWriter( clientSocket.getOutputStream() ) );
       in = new BufferedReader( new InputStreamReader( clientSocket.getInputStream() ) );
     }
@@ -112,6 +108,12 @@ public class SocketManagerTest {
         return false;
       }
     }
+
+    @Override
+    public void close() throws Exception {
+      clientSocket.close();
+    }
+
   }
 
   class WorkerFactory implements Supplier<ServerWorker> {
@@ -124,7 +126,7 @@ public class SocketManagerTest {
     private boolean stopRequest = false;
     private String sender;
 
-    public void accept( Socket socket ) {
+    public void work( Socket socket ) {
 
       try {
         BufferedReader reader = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
@@ -151,11 +153,6 @@ public class SocketManagerTest {
       catch( IOException ex ) {
         ex.printStackTrace();
       }
-    }
-
-    @Override
-    public void setSender( InetSocketAddress sender ) {
-      this.sender = sender.toString();
     }
 
     @Override

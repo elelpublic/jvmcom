@@ -123,18 +123,14 @@ public class TextServer {
       this.handler = lineBufferHandler;
     }
 
-    public void setSender( InetSocketAddress senderAddress ) {
-      handler.setSender( senderAddress );
-    }
-
     @Override
-    public void accept( Socket socket ) {
+    public void work( Socket socket ) {
+
+      handler.setSender( (InetSocketAddress) socket.getRemoteSocketAddress() );
 
       if( threadName != null ) {
         Thread.currentThread().setName( threadName );
       }
-
-      InetAddress senderAddress = socket.getInetAddress();
 
       logger.debug( "Accepted new connection." );
 

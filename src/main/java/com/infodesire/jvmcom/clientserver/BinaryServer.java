@@ -123,7 +123,7 @@ public class BinaryServer {
     }
 
     @Override
-    public void accept( Socket socket ) {
+    public void work( Socket socket ) {
 
       if( threadName != null ) {
         Thread.currentThread().setName( threadName );

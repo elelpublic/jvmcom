@@ -163,13 +163,11 @@ public class SocketManager {
       this.id = id;
       this.socket = socket;
       this.worker = worker;
-      InetSocketAddress inetSocketAddress = (InetSocketAddress) socket.getRemoteSocketAddress();
-      worker.setSender( inetSocketAddress );
     }
 
     @Override
     public void run() {
-      worker.accept( socket );
+      worker.work( socket );
     }
     
     public int hashCode() {
