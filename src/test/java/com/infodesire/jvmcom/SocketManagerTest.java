@@ -125,9 +125,7 @@ public class SocketManagerTest {
     private String sender;
 
     public void accept( Socket socket ) {
-      work( socket );
-    }
-    private void work( Socket socket ) {
+
       try {
         BufferedReader reader = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
         while( reader.ready() ) {
