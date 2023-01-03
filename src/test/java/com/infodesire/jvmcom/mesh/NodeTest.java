@@ -30,7 +30,7 @@ public class NodeTest {
   static {
     System.setProperty( "org.slf4j.simpleLogger.defaultLogLevel", "debug" );
   }
-  private static Logger logger = LoggerFactory.getLogger( "NodeTest" );
+  private static final Logger logger = LoggerFactory.getLogger( "NodeTest" );
 
   @Before
   public void setUp() throws Exception {
@@ -89,7 +89,7 @@ public class NodeTest {
 
     try(
             TextClient client1 = new TextClient( socketPool, node2.getAddress() );
-            TextClient client2 = new TextClient( socketPool, node1.getAddress() );
+            TextClient client2 = new TextClient( socketPool, node1.getAddress() )
     ) {
 
       assertEquals( "node2", "" + node1.ping( client1 ) );

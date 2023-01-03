@@ -14,7 +14,7 @@ import java.util.Enumeration;
 
 public class Servlet extends HttpServlet {
 
-  private static Logger logger = LoggerFactory.getLogger( "Server" );
+  private static final Logger logger = LoggerFactory.getLogger( "Server" );
 
   public void init() {
     logger.info( "Servlet init" );

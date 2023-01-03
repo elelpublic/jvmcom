@@ -25,11 +25,11 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public class ValueServer {
 
-  private static Logger logger = LoggerFactory.getLogger( "Server" );
+  private static final Logger logger = LoggerFactory.getLogger( "Server" );
 
   private final ServerConfig config;
   private final TextServer server;
-  private ConcurrentHashMap<String, Map<String, String>> maps = new ConcurrentHashMap<>(
+  private final ConcurrentHashMap<String, Map<String, String>> maps = new ConcurrentHashMap<>(
     10, // initial capacity
     0.8f, // load factor
     10 // concurrency level (number of concurrent modifications)

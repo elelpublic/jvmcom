@@ -16,7 +16,7 @@ import static com.infodesire.jvmcom.ConfigProperties.THREAD_COUNT;
  */
 public class WebAppServer {
 
-  private static Logger logger = LoggerFactory.getLogger( "WebAppServer" );
+  private static final Logger logger = LoggerFactory.getLogger( "WebAppServer" );
 
   private static boolean isClientConnected = false;
   private static int port;

@@ -28,8 +28,8 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 public class OldValuesServer {
 
   private int port;
-  private int threadCount;
-  private ConcurrentHashMap<String, Map<String, String>> maps = new ConcurrentHashMap<>(
+  private final int threadCount;
+  private final ConcurrentHashMap<String, Map<String, String>> maps = new ConcurrentHashMap<>(
     10, // initial capacity
     0.8f, // load factor
     10 // concurrency level (number of concurrent modifications)
@@ -42,7 +42,7 @@ public class OldValuesServer {
    */
   private String serverThreadName, workerThreadName;
 
-  private static Logger logger = LoggerFactory.getLogger( "Server" );
+  private static final Logger logger = LoggerFactory.getLogger( "Server" );
 
 
   /**
@@ -98,7 +98,7 @@ public class OldValuesServer {
 
   class WorkerFactory implements Supplier<ServerWorker> {
 
-    private String threadName;
+    private final String threadName;
 
     WorkerFactory( String threadName ) {
       this.threadName = threadName;

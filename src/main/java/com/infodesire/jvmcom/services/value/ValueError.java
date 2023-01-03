@@ -10,6 +10,6 @@ public enum ValueError {
 
   VALUE_MUST_NO_BE_NULL,
 
-  UNKNOWN_ERROR;
+  UNKNOWN_ERROR
 
 }

@@ -14,7 +14,7 @@ import java.util.TreeMap;
 public class MeshConfig {
 
   public String name;
-  private SortedMap<String, NodeConfig> nodes = new TreeMap<>();
+  private final SortedMap<String, NodeConfig> nodes = new TreeMap<>();
 
   public static MeshConfig loadFromProperties( Properties props ) {
 

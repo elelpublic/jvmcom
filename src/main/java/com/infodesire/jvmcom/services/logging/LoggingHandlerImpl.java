@@ -9,7 +9,7 @@ import java.net.InetSocketAddress;
 
 public class LoggingHandlerImpl implements LoggingHandler {
 
-  private static Logger logger = LoggerFactory.getLogger( "Server" );
+  private static final Logger logger = LoggerFactory.getLogger( "Server" );
 
   private InetSocketAddress senderAddress;
 

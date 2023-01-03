@@ -48,7 +48,7 @@ public class LoggingServiceTest {
               public LoggingHandler get() {
                 return testLoggingHandler;
               }
-            } );
+            } )
       ) {
 
       service.start();

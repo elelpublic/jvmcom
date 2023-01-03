@@ -48,7 +48,7 @@ public class LoggingClient implements AutoCloseable {
       }
     }
     catch( IOException ex ) {
-      localLog.error( "Error requesting log level via " + client.toString() );
+      localLog.error( "Error requesting log level via " + client );
     }
   }
 

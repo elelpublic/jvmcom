@@ -1,34 +1,29 @@
 package com.infodesire.jvmcom;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
 /**
  * A server socket manager which uses a thread pool for workers serving requests
  * and cleans up (closed) all sockets in an orderly fashion when the thread pool ist stopped.
- *
- * Idea found here: https://stackoverflow.com/questions/25528634/reliably-closing-client-sockets-in-a-thread-pool-on-shutdown
+ * <p>
+ * Idea found here: <a href="https://stackoverflow.com/questions/25528634/reliably-closing-client-sockets-in-a-thread-pool-on-shutdown">stackoverflow</a>
  *
  */
 public class SocketManager {
 
 
   private final ServerThread serverThread;
-  private ThreadPoolExecutor pool;
+  private final ThreadPoolExecutor pool;
 
 
-  private Set<WorkerThread> workers = new HashSet<>();
+  private final Set<WorkerThread> workers = new HashSet<>();
 
 
   /**
@@ -51,19 +46,19 @@ public class SocketManager {
         // The future returns the Worker object!
         WorkerThread worker;
         try {
-          worker = (WorkerThread)((FutureTask)r).get();
+          worker = (WorkerThread)((FutureTask<?>)r).get();
           if( worker != null ) {
             // Remove it from list of known clients
             worker.requestStop();
             workers.remove( worker );
           }
         }
-        catch( InterruptedException | ExecutionException ex ) {}
+        catch( InterruptedException | ExecutionException ignored ) {}
       }
 
     };
 
-    serverThread = new ServerThread( pool, serverSocket, workerFactory );
+    serverThread = new ServerThread( serverSocket, workerFactory );
     if( serverThreadName != null ) {
       serverThread.setName( serverThreadName );
     }
@@ -109,7 +104,7 @@ public class SocketManager {
     private boolean shutdown = false;
     private final AtomicLong ids = new AtomicLong();
 
-    ServerThread( ThreadPoolExecutor pool, ServerSocket serverSocket, Supplier<ServerWorker> workerFactory ) {
+    ServerThread( ServerSocket serverSocket, Supplier<ServerWorker> workerFactory ) {
       this.serverSocket = serverSocket;
       this.workerFactory = workerFactory;
     }
@@ -135,7 +130,7 @@ public class SocketManager {
       try {
         serverSocket.close();
       }
-      catch( IOException ex ) {}
+      catch( IOException ignored ) {}
       interrupt();
     }
 
@@ -153,7 +148,7 @@ public class SocketManager {
   }
 
 
-  class WorkerThread implements Runnable {
+  static class WorkerThread implements Runnable {
 
     private final Object id;
     private final Socket socket;
@@ -182,7 +177,7 @@ public class SocketManager {
       try {
         socket.close();
       }
-      catch( IOException ex ) {}
+      catch( IOException ignored ) {}
     }
 
     public void requestStop() {

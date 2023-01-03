@@ -17,7 +17,7 @@ public enum Level {
 
   private final int numeric;
 
-  private Level( int numeric ) {
+  Level( int numeric ) {
     this.numeric = numeric;
   }
 

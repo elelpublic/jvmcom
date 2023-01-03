@@ -23,15 +23,12 @@ import java.util.Properties;
 
 public class ConnectionLeakTest {
 
-    private MeshConfig config;
-    private SocketPool socketPool;
     private Node node1, node2, node3;
-    private Mesh mesh;
 
     static {
         System.setProperty( "org.slf4j.simpleLogger.defaultLogLevel", "warn" );
     }
-    private static Logger logger = LoggerFactory.getLogger( "ConnectionLeakTest" );
+    private static final Logger logger = LoggerFactory.getLogger( "ConnectionLeakTest" );
 
     @Before
     public void setUp() throws Exception {
@@ -54,11 +51,11 @@ public class ConnectionLeakTest {
 
         Properties properties = new Properties();
         properties.load( new FileReader( tempFile ) );
-        config = MeshConfig.loadFromProperties( properties );
+        MeshConfig config = MeshConfig.loadFromProperties( properties );
 
-        socketPool = new SocketPool();
+        SocketPool socketPool = new SocketPool();
 
-        mesh = new Mesh( config, socketPool, new PrintMessageHandlerFactory(), new DefaultServiceFactory() );
+        Mesh mesh = new Mesh( config, socketPool, new PrintMessageHandlerFactory(), new DefaultServiceFactory() );
 
         node1 = mesh.get( "node1" );
         node2 = mesh.get( "node2" );

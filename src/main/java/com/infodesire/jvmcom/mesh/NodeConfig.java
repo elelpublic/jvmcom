@@ -12,7 +12,7 @@ public class NodeConfig implements Comparable<NodeConfig> {
 
   private NodeAddress address;
 
-  private Map<String, ServiceConfig> services = new HashMap<>();
+  private final Map<String, ServiceConfig> services = new HashMap<>();
 
   private boolean autojoin = false;
 
