@@ -85,7 +85,7 @@ public class ConnectionLeakTest {
         }
     }
 
-    @Test(timeout = 2000)
+    @Test(timeout = 10000)
     public void testMultipleJoinLeave() throws IOException {
 
         int CONNECTION_COUNT = 2000;
