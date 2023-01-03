@@ -14,10 +14,8 @@ import java.util.function.Supplier;
 public class MeshSocket {
 
   private final TextServer server;
-  private final NodeAddress myAddress;
 
   public MeshSocket( NodeAddress myAddress, Supplier<TextHandler> handlerFactory ) throws IOException {
-    this.myAddress = myAddress;
     ServerConfig config = new ServerConfig( myAddress.getInetSocketAddress().getPort() );
     server = new TextServer( config, handlerFactory );
     server.start();
