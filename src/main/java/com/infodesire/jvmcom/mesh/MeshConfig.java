@@ -1,5 +1,7 @@
 package com.infodesire.jvmcom.mesh;
 
+import com.infodesire.jvmcom.util.StringUtils;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -29,11 +31,13 @@ public class MeshConfig {
       NodeConfig nodeConfig = new NodeConfig( nodeAddress );
       nodeConfig.setAutojoin( Boolean.parseBoolean( props.getProperty( "nodes." + nodeName + ".autojoin", "false" ) ) );
       String serviceNames = props.getProperty( "nodes." + nodeName + ".services", "" );
-      for( String serviceName : serviceNames.split( "," ) ) {
-        serviceName = serviceName.trim();
-        int servicePort = Integer.parseInt( props.getProperty( "nodes." + nodeName + ".service." + serviceName + ".port", "0" ) );
-        ServiceConfig serviceConfig = new ServiceConfig( serviceName, servicePort );
-        nodeConfig.addService( serviceConfig );
+      if( !StringUtils.isEmpty( serviceNames ) ) {
+        for( String serviceName : serviceNames.split( "," ) ) {
+          serviceName = serviceName.trim();
+          int servicePort = Integer.parseInt( props.getProperty( "nodes." + nodeName + ".service." + serviceName + ".port", "0" ) );
+          ServiceConfig serviceConfig = new ServiceConfig( serviceName, servicePort );
+          nodeConfig.addService( serviceConfig );
+        }
       }
       config.nodes.put( nodeName, nodeConfig );
     }
