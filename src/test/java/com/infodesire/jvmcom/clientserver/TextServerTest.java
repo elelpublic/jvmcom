@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
 
-public class LineBufferServerTest {
+public class TextServerTest {
 
 
   @Test

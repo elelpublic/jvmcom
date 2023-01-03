@@ -5,15 +5,7 @@ import java.net.InetSocketAddress;
 /**
  * Worker processing lines of text received on a socket
  */
-public interface LineBufferHandler {
-
-  /**
-   * Set sender of requests
-   *
-   * @param senderAddress Sender of requests
-   *
-   */
-  void setSender( InetSocketAddress senderAddress );
+public interface BinaryHandler extends ServerHandler {
 
   /**
    * Process a line of data from client

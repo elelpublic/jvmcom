@@ -6,13 +6,7 @@ import com.infodesire.jvmcom.SocketManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -21,18 +15,18 @@ import java.util.function.Supplier;
 
 /**
  * Server socket with backed by thread pool of workers.
- * Workers will process client data on a line by line basis.
+ * Workers will process client data as binary blobs
  *
  */
-public class TextServer {
+public class BinaryServer {
 
-  private final Supplier<TextHandler> handlerFactory;
+  private final Supplier<BinaryHandler> handlerFactory;
   private final ServerConfig config;
   private int localPort = 0;
   private SocketManager serverSocketManager;
 
 
-  private static final Logger logger = LoggerFactory.getLogger( "TextServer" );
+  private static final Logger logger = LoggerFactory.getLogger( "BinaryServer" );
 
 
   /**
@@ -43,8 +37,8 @@ public class TextServer {
    * @param handlerFactory Creates handlers for incoming socket connections
    *
    */
-  public TextServer( ServerConfig config,
-                     Supplier<TextHandler> handlerFactory ) {
+  public BinaryServer( ServerConfig config,
+                       Supplier<BinaryHandler> handlerFactory ) {
     
     this.config = config;
     this.handlerFactory = handlerFactory;
@@ -66,7 +60,8 @@ public class TextServer {
     serverSocket.close();
 
     serverSocketManager = new SocketManager( localPort, config.threadCount,
-            new WorkerFactory( config.workerThreadNamePattern, handlerFactory ), config.serverThreadNamePattern );
+            new WorkerFactory( config.workerThreadNamePattern, handlerFactory ),
+            config.serverThreadNamePattern );
 
     logger.info( "Server started on port " + localPort + ". Waiting for requests." );
 
@@ -95,17 +90,17 @@ public class TextServer {
 
   static class WorkerFactory implements Supplier<ServerWorker> {
 
-    private final Supplier<TextHandler> handlerFactory;
+    private final Supplier<BinaryHandler> handlerFactory;
     private final String threadName;
 
-    WorkerFactory( String threadName, Supplier<TextHandler> handlerFactory ) {
+    WorkerFactory( String threadName, Supplier<BinaryHandler> handlerFactory ) {
       this.threadName = threadName;
       this.handlerFactory = handlerFactory;
     }
 
     @Override
     public ServerWorker get() {
-      return new Worker( threadName, handlerFactory.get() );
+      return new Worker( threadName, (BinaryHandler) handlerFactory.get() );
     }
 
   }
@@ -113,11 +108,11 @@ public class TextServer {
   static class Worker implements ServerWorker {
 
     private final String threadName;
-    private final TextHandler handler;
+    private final BinaryHandler handler;
     private PrintWriter writer;
     private boolean stopRequest = false;
 
-    Worker( String threadName, TextHandler lineBufferHandler ) {
+    Worker( String threadName, BinaryHandler lineBufferHandler ) {
 
       this.threadName = threadName;
       this.handler = lineBufferHandler;
