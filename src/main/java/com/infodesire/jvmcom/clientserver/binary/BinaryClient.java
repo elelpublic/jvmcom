@@ -1,4 +1,4 @@
-package com.infodesire.jvmcom.clientserver;
+package com.infodesire.jvmcom.clientserver.binary;
 
 import com.infodesire.jvmcom.mesh.NodeAddress;
 import com.infodesire.jvmcom.pool.SocketPool;

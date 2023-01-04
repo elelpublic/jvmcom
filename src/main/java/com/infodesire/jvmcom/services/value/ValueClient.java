@@ -1,6 +1,6 @@
 package com.infodesire.jvmcom.services.value;
 
-import com.infodesire.jvmcom.clientserver.TextClient;
+import com.infodesire.jvmcom.clientserver.text.TextClient;
 import com.infodesire.jvmcom.pool.SocketPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

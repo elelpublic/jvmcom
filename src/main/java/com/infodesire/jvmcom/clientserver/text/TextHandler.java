@@ -1,15 +1,15 @@
-package com.infodesire.jvmcom.clientserver;
+package com.infodesire.jvmcom.clientserver.text;
 
-import java.net.InetSocketAddress;
+import com.infodesire.jvmcom.clientserver.HandlerReply;
+import com.infodesire.jvmcom.clientserver.ServerHandler;
 
 /**
  * Worker processing lines of text received on a socket
  */
-public interface BinaryHandler extends ServerHandler {
+public interface TextHandler extends ServerHandler {
 
   /**
    * Process a line of data from client
-   *
    *
    * @param line Line of data
    * @return True: continue listening, false: close connection

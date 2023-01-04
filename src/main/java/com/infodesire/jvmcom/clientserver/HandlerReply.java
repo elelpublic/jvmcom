@@ -10,7 +10,7 @@ public class HandlerReply {
   /**
    * True: go on with processing, false: close connection
    */
-  boolean continueProcessing = true;
+  public boolean continueProcessing = true;
 
   /**
    * Reply text to be sent to client

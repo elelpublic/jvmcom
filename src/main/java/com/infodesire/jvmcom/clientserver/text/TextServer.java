@@ -1,8 +1,9 @@
-package com.infodesire.jvmcom.clientserver;
+package com.infodesire.jvmcom.clientserver.text;
 
 import com.infodesire.jvmcom.ServerConfig;
 import com.infodesire.jvmcom.ServerWorker;
 import com.infodesire.jvmcom.SocketManager;
+import com.infodesire.jvmcom.clientserver.HandlerReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

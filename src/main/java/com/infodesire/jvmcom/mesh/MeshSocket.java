@@ -1,8 +1,8 @@
 package com.infodesire.jvmcom.mesh;
 
 import com.infodesire.jvmcom.ServerConfig;
-import com.infodesire.jvmcom.clientserver.TextHandler;
-import com.infodesire.jvmcom.clientserver.TextServer;
+import com.infodesire.jvmcom.clientserver.text.TextHandler;
+import com.infodesire.jvmcom.clientserver.text.TextServer;
 
 import java.io.IOException;
 import java.util.function.Supplier;

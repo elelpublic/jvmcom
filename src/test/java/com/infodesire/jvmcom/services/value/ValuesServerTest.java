@@ -1,7 +1,7 @@
 package com.infodesire.jvmcom.services.value;
 
 import com.infodesire.jvmcom.ServerConfig;
-import com.infodesire.jvmcom.clientserver.TextClient;
+import com.infodesire.jvmcom.clientserver.text.TextClient;
 import com.infodesire.jvmcom.pool.SocketPool;
 import junit.framework.TestCase;
 import org.junit.BeforeClass;

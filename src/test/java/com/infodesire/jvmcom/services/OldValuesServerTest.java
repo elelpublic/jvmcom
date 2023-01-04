@@ -1,6 +1,6 @@
 package com.infodesire.jvmcom.services;
 
-import com.infodesire.jvmcom.clientserver.TextClient;
+import com.infodesire.jvmcom.clientserver.text.TextClient;
 import com.infodesire.jvmcom.pool.SocketPool;
 import org.junit.BeforeClass;
 import org.junit.Test;

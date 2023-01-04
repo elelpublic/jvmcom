@@ -1,8 +1,8 @@
 package com.infodesire.jvmcom.mesh;
 
 import com.infodesire.jvmcom.clientserver.HandlerReply;
-import com.infodesire.jvmcom.clientserver.TextClient;
-import com.infodesire.jvmcom.clientserver.TextHandler;
+import com.infodesire.jvmcom.clientserver.text.TextClient;
+import com.infodesire.jvmcom.clientserver.text.TextHandler;
 import com.infodesire.jvmcom.pool.SocketPool;
 import com.infodesire.jvmcom.services.Service;
 import com.infodesire.jvmcom.services.ServiceFactory;

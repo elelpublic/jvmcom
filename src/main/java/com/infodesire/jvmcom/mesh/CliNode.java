@@ -1,6 +1,6 @@
 package com.infodesire.jvmcom.mesh;
 
-import com.infodesire.jvmcom.clientserver.TextClient;
+import com.infodesire.jvmcom.clientserver.text.TextClient;
 import com.infodesire.jvmcom.pool.SocketPool;
 import com.infodesire.jvmcom.services.ServiceFactory;
 import org.slf4j.Logger;
