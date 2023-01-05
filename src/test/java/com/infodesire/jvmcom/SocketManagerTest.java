@@ -23,7 +23,7 @@ public class SocketManagerTest {
   }
 
   @Test
-  public void simpleCommunication() throws IOException {
+  public void simpleCommunication() throws Exception {
 
     log = new ArrayList<>();
 
@@ -33,29 +33,33 @@ public class SocketManagerTest {
     SocketManager manager = new SocketManager( 0, 3, workerFactory, "SERVER"  );
     int port = manager.getPort();
 
-    Client client = new Client( host, port );
+    try(
+            Client client = new Client( host, port );
+    ) {
 
-    String line = client.receive();
-    log( line );
+      String line = client.receive();
+      log( line );
 
-    client.send( "HELO" );
+      client.send( "HELO" );
 
-    line = client.receive();
-    log( "reply:" + line );
+      line = client.receive();
+      log( "reply:" + line );
 
-    int linecounter = 0;
-    assertEquals( 3, log.size() );
-    assertEquals( "welcome", log.get( linecounter++ ) );
-    String reply = log.get( linecounter++ );
-    assertTrue( reply.startsWith( "request from " ) );
-    assertTrue( reply.endsWith( ":HELO" ) );
+      int linecounter = 0;
+      assertEquals( 3, log.size() );
+      assertEquals( "welcome", log.get( linecounter++ ) );
+      String reply = log.get( linecounter++ );
+      assertTrue( reply.startsWith( "request from " ) );
+      assertTrue( reply.endsWith( ":HELO" ) );
 
-    assertEquals( "reply:OK", log.get( linecounter ) );
+      assertEquals( "reply:OK", log.get( linecounter ) );
+
+    }
 
   }
 
   @Test
-  public void testLifecycleWithRestart() throws IOException, InterruptedException {
+  public void testLifecycleWithRestart() throws Exception {
 
     log = new ArrayList<>();
 
@@ -65,17 +69,25 @@ public class SocketManagerTest {
     SocketManager manager = new SocketManager( 0, 3, workerFactory, "SERVER" );
     int port = manager.getPort();
 
-    Client client = new Client( host, port );
-    assertEquals( "welcome", client.receive() );
-    manager.stop( 1000 );
-    assertFalse( client.ping() );
+    try(
+            Client client = new Client( host, port )
+    ) {
+      assertEquals( "welcome", client.receive() );
+      manager.stop( 1000 );
+      assertFalse( client.ping() );
+
+    }
 
     manager = new SocketManager( port, 3, workerFactory, "SERVER" );
-    client = new Client( host, port );
-    assertEquals( "welcome", client.receive() );
-    assertTrue( client.ping() );
-    manager.stop( 1000 );
-    assertFalse( client.ping() );
+
+    try(
+            Client client = new Client( host, port )
+    ) {
+      assertEquals( "welcome", client.receive() );
+      assertTrue( client.ping() );
+      manager.stop( 1000 );
+      assertFalse( client.ping() );
+    }
 
   }
 
@@ -116,15 +128,14 @@ public class SocketManagerTest {
 
   }
 
-  class WorkerFactory implements Supplier<ServerWorker> {
+  static class WorkerFactory implements Supplier<ServerWorker> {
     public ServerWorker get() {
       return new Worker();
     }
   }
 
-  class Worker implements ServerWorker {
+  static class Worker implements ServerWorker {
     private boolean stopRequest = false;
-    private String sender;
 
     public void work( Socket socket ) {
 
@@ -140,9 +151,9 @@ public class SocketManagerTest {
           String line = null;
           try {
             line = reader.readLine();
-            log( "request from " + sender + ":" + line );
+            log( "request from " + socket.getRemoteSocketAddress() + ":" + line );
           }
-          catch( IOException ex ) {}
+          catch( IOException ignored ) {}
           if( line == null ) {
             stopRequest = true; // null means end of stream
           }
