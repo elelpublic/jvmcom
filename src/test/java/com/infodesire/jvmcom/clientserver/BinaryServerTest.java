@@ -28,7 +28,7 @@ public class BinaryServerTest {
 
 
     @Test
-    public void testBinarySocketStream() throws Exception {
+    public void binareSocketStream() throws Exception {
 
         List<Exception> insideFails = new ArrayList<>();
 
@@ -37,7 +37,7 @@ public class BinaryServerTest {
                 Socket client = new Socket( "localhost", serverSocket.getLocalPort() );
         ) {
 
-            Runnable s = () -> {
+            Runnable receiver = () -> {
                 try(
                         Socket server = serverSocket.accept();
                         InputStream serverIn = server.getInputStream();
@@ -54,7 +54,7 @@ public class BinaryServerTest {
                 }
             };
 
-            Runnable c = () -> {
+            Runnable sender = () -> {
                 try(
                         OutputStream clientOut = client.getOutputStream();
                 ) {
@@ -72,8 +72,8 @@ public class BinaryServerTest {
             };
 
             ExecutorService exec = Executors.newFixedThreadPool( 2 );
-            exec.submit( s );
-            exec.submit( c );
+            exec.submit( receiver );
+            exec.submit( sender );
             exec.shutdown();
             assertTrue( exec.awaitTermination( 2000, TimeUnit.MILLISECONDS ) );
 
@@ -89,7 +89,7 @@ public class BinaryServerTest {
     }
 
     @Test
-    public void testMessageSerializationViaByteArray() throws IOException, ClassNotFoundException {
+    public void messageSerialization() throws IOException, ClassNotFoundException {
 
         Message message = new Message();
         message.status = OK;
@@ -123,7 +123,7 @@ public class BinaryServerTest {
 
 
     @Test
-    public void testMessageSerializationViaDataStream() throws IOException, ClassNotFoundException {
+    public void messageSerializationWithDataStream() throws IOException, ClassNotFoundException {
 
         Message message = new Message();
         message.status = OK;
@@ -156,7 +156,7 @@ public class BinaryServerTest {
     }
 
     @Test
-    public void testFileTransferOverSocket() throws Exception {
+    public void sendFile() throws Exception {
 
         List<Exception> insideFails = new ArrayList<>();
 
@@ -168,7 +168,7 @@ public class BinaryServerTest {
                 Socket client = new Socket( "localhost", serverSocket.getLocalPort() );
         ) {
 
-            Runnable s = () -> {
+            Runnable receiver = () -> {
 
                 try(
                         Socket server = serverSocket.accept();
@@ -186,7 +186,7 @@ public class BinaryServerTest {
 
             };
 
-            Runnable c = () -> {
+            Runnable sender = () -> {
 
                 try(
                         OutputStream out = client.getOutputStream();
@@ -204,8 +204,8 @@ public class BinaryServerTest {
             };
 
             ExecutorService exec = Executors.newFixedThreadPool( 2 );
-            exec.submit( s );
-            exec.submit( c );
+            exec.submit( receiver );
+            exec.submit( sender );
             exec.shutdown();
             assertTrue( exec.awaitTermination( 2000, TimeUnit.MILLISECONDS ) );
 
@@ -226,8 +226,8 @@ public class BinaryServerTest {
 
     }
 
-    //@Test
-    public void testSendMultipleFileOverSameSocket() throws Exception {
+    @Test
+    public void sendMultipleFiles() throws Exception {
 
         List<Exception> insideFails = new ArrayList<>();
 
@@ -247,7 +247,7 @@ public class BinaryServerTest {
                 Socket client = new Socket( "localhost", serverSocket.getLocalPort() );
         ) {
 
-            Runnable s = () -> {
+            Runnable receiver = () -> {
 
                 try(
                         Socket server = serverSocket.accept();
@@ -255,9 +255,9 @@ public class BinaryServerTest {
                         DataInputStream din = new DataInputStream( in );
                 ) {
 
-                    while( in.available() > 0 ) {
+                    Message message = Message.deserialize( din );
 
-                        Message message = Message.deserialize( din );
+                    while( message != null ) {
 
                         File targetFile = new File( targetDir, message.fileName );
                         FileOutputStream out = new FileOutputStream( targetFile );
@@ -266,8 +266,9 @@ public class BinaryServerTest {
 
                         logger.info( "Finished writing file " + targetFile.getAbsolutePath() );
 
-                    }
+                        message = Message.deserialize( din );
 
+                    }
 
                 }
                 catch( IOException ex ) {
@@ -277,7 +278,7 @@ public class BinaryServerTest {
             };
 
 
-            Runnable c = () -> {
+            Runnable sender = () -> {
 
                 try(
                         OutputStream out = client.getOutputStream();
@@ -301,8 +302,8 @@ public class BinaryServerTest {
             };
 
             ExecutorService exec = Executors.newFixedThreadPool( 2 );
-            exec.submit( s );
-            exec.submit( c );
+            exec.submit( receiver );
+            exec.submit( sender );
             exec.shutdown();
             assertTrue( exec.awaitTermination( 2000, TimeUnit.MILLISECONDS ) );
 
@@ -323,7 +324,7 @@ public class BinaryServerTest {
             String sourceChecksum = FileUtils.checksum( sourceFile );
             String targetChecksum = FileUtils.checksum( targetFile );
             assertEquals( sourceChecksum, targetChecksum );
-            logger.info( "Equal checksum: " + targetChecksum );
+            logger.info( "Equal checksum for " + sourceFile + ": " + targetChecksum );
 
         }
 

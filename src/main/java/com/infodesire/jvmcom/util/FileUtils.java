@@ -36,32 +36,39 @@ public class FileUtils {
     }
 
     public static String checksum( File file ) throws IOException, NoSuchAlgorithmException {
+
         MessageDigest sha = MessageDigest.getInstance( "SHA-1" );
-        try(
-                InputStream in = Files.newInputStream( file.toPath() );
-                DigestInputStream dis = new DigestInputStream( in, sha )
-        ) {
-            byte[] bytes = new byte[ 16 * 1024 ];
-            int count;
-            while( ( count = in.read( bytes ) ) > 0 ) {
-            }
+
+        FileInputStream fis = new FileInputStream( file );
+
+        byte[] byteArray = new byte[ 1024 * 4 ];
+        int bytesCount = 0;
+
+        //Read file data and update in message digest
+        while( ( bytesCount = fis.read( byteArray ) ) != -1 ) {
+            sha.update( byteArray, 0, bytesCount );
         }
-        byte[] digest = sha.digest();
-        StringBuilder result = new StringBuilder();
-        for( byte b : digest ) {
-            result.append( String.format( "%02x", b ) );
+
+        fis.close();
+
+        byte[] bytes = sha.digest();
+
+        // convert to hex
+        StringBuilder sb = new StringBuilder();
+        for( int i = 0; i < bytes.length; i++ ) {
+            sb.append( Integer.toString( ( bytes[ i ] & 0xff ) + 0x100, 16 ).substring( 1 ) );
         }
-        return result.toString();
+        return sb.toString();
+
     }
 
 
     /**
      * Pipe all data from an input source to an output stream
      *
-     * @param in Input stream
+     * @param in  Input stream
      * @param out Output stream
      * @throws IOException on underlying IO error
-     *
      */
     public static void pipe( InputStream in, OutputStream out ) throws IOException {
 
@@ -76,11 +83,10 @@ public class FileUtils {
     /**
      * Pipe all data from an input source to an output stream
      *
-     * @param in Input stream
-     * @param out Output stream
+     * @param in     Input stream
+     * @param out    Output stream
      * @param length Number of bytes to read
      * @throws IOException on underlying IO error
-     *
      */
     public static void pipe( InputStream in, OutputStream out, int length ) throws IOException {
 
@@ -90,6 +96,7 @@ public class FileUtils {
         int remaining = length;
         while( ( count = in.read( bytes, 0, Math.min( bufferSize, remaining ) ) ) > 0 ) {
             out.write( bytes, 0, count );
+            remaining -= count;
         }
 
     }
