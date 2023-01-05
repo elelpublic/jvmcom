@@ -148,6 +148,7 @@ public class BinaryServerTest {
         // test serialize-deserialize
         Message received = Message.deserialize( in );
 
+        assert received != null;
         assertEquals( message.status, received.status );
         assertEquals( message.fileName, received.fileName );
         assertEquals( message.fileSize, received.fileSize );
@@ -227,9 +228,9 @@ public class BinaryServerTest {
     }
 
     @Test
-    public void sendMultipleFiles() throws Exception {
+    public void sendMultipleFiles() throws Throwable {
 
-        List<Exception> insideFails = new ArrayList<>();
+        List<Throwable> insideFails = new ArrayList<>();
 
         final File sourcePNG = new File( "src/test/ressources/HelloWorld.png" );
         final File sourcePDF = new File( "src/test/ressources/HelloWorld.pdf" );
@@ -271,7 +272,7 @@ public class BinaryServerTest {
                     }
 
                 }
-                catch( IOException ex ) {
+                catch( Throwable ex ) {
                     insideFails.add( ex );
                 }
 
@@ -295,7 +296,7 @@ public class BinaryServerTest {
 
                     }
                 }
-                catch( IOException ex ) {
+                catch( Throwable ex ) {
                     insideFails.add( ex );
                 }
 
@@ -312,7 +313,7 @@ public class BinaryServerTest {
             throw new RuntimeException( ex );
         }
 
-        for( Exception ex : insideFails ) {
+        for( Throwable ex : insideFails ) {
             throw ex;
         }
 

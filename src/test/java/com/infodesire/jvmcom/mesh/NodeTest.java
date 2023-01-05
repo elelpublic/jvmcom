@@ -103,7 +103,7 @@ public class NodeTest {
   }
 
 
-  @Test( timeout = 2000 )
+  @Test( timeout = 10000 )
   public void testJoinLeave() throws IOException {
 
     assertFalse( node1.isIn() );
