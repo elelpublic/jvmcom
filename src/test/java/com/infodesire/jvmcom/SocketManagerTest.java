@@ -23,7 +23,7 @@ public class SocketManagerTest {
   }
 
   @Test
-  public void testCommunication() throws IOException {
+  public void simpleCommunication() throws IOException {
 
     log = new ArrayList<>();
 
