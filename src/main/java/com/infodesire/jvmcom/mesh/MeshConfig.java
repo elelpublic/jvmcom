@@ -24,8 +24,8 @@ public class MeshConfig {
 
     for( String nodeName : props.getProperty( "nodes", "" ).split( "," ) ) {
       nodeName = nodeName.trim();
-      String hostName = "localhost";
       int port = Integer.parseInt( props.getProperty( "nodes." + nodeName + ".port", "0" ) );
+      String hostName = props.getProperty( "nodes." + nodeName + ".host", "localhost" );
       InetSocketAddress inetAddress = new InetSocketAddress( hostName, port );
       NodeAddress nodeAddress = new NodeAddress( nodeName, inetAddress );
       NodeConfig nodeConfig = new NodeConfig( nodeAddress );
