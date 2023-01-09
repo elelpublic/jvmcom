@@ -1,7 +1,6 @@
 package com.infodesire.jvmcom.netty.time;
 
 import io.netty.bootstrap.ServerBootstrap;
-
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -13,11 +12,11 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 /**
  * Echoes any incoming data.
  */
-public class TimeServer {
+public class PojoTimeServer {
 
     private int port;
 
-    public TimeServer( int port ) {
+    public PojoTimeServer( int port ) {
         this.port = port;
     }
 
@@ -31,7 +30,7 @@ public class TimeServer {
                     .childHandler( new ChannelInitializer<SocketChannel>() { // (4)
                         @Override
                         public void initChannel( SocketChannel ch ) throws Exception {
-                            ch.pipeline().addLast( new TimeServerHandler() );
+                            ch.pipeline().addLast( new PojoTimeServerHandler() );
                         }
                     } )
                     .option( ChannelOption.SO_BACKLOG, 128 )          // (5)
@@ -57,6 +56,6 @@ public class TimeServer {
             port = Integer.parseInt( args[ 0 ] );
         }
 
-        new TimeServer( port ).run();
+        new PojoTimeServer( port ).run();
     }
 }

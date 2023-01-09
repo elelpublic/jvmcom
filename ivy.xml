@@ -84,6 +84,14 @@
         -->
         <dependency org="org.apache.commons" name="commons-pool2" rev="${commons-pool2.version}"/>
 
+        <!--
+        https://mvnrepository.com/artifact/io.netty/netty-all
+
+        Build on the robust netty framework for networking
+        -->
+        <dependency org="io.netty" name="netty-all" rev="${netty.version}"/>
+
+
     </dependencies>
 
 </ivy-module>
