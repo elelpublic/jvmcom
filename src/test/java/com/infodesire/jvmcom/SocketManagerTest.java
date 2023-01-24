@@ -34,7 +34,7 @@ public class SocketManagerTest {
     int port = manager.getPort();
 
     try(
-            Client client = new Client( host, port );
+            Client client = new Client( host, port )
     ) {
 
       String line = client.receive();
@@ -78,7 +78,8 @@ public class SocketManagerTest {
 
     }
 
-    manager = new SocketManager( port, 3, workerFactory, "SERVER" );
+    manager = new SocketManager( 0, 3, workerFactory, "SERVER" );
+    port = manager.getPort();
 
     try(
             Client client = new Client( host, port )

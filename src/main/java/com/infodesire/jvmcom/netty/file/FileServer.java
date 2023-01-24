@@ -109,7 +109,7 @@ public final class FileServer implements AutoCloseable {
                 .handler( new LoggingHandler( LogLevel.INFO ) )
                 .childHandler( new ChannelInitializer<SocketChannel>() {
                     @Override
-                    public void initChannel( SocketChannel ch ) throws Exception {
+                    public void initChannel( SocketChannel ch ) {
                         ChannelPipeline p = ch.pipeline();
                         if( sslCtx != null ) {
                             p.addLast( sslCtx.newHandler( ch.alloc() ) );
@@ -130,9 +130,9 @@ public final class FileServer implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        channelFuture.channel().close().sync();
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
+        channelFuture.channel().close().sync();
     }
 
     private static Options createOptions() {
