@@ -1,6 +1,7 @@
-package com.infodesire.jvmcom.services.logging;
+package com.infodesire.jvmcom.util;
 
 import com.infodesire.jvmcom.clientserver.HandlerReply;
+import com.infodesire.jvmcom.services.logging.Level;
 import org.slf4j.Logger;
 
 public class LoggingUtils {

@@ -16,6 +16,7 @@
             <pathelement location="lib/netty-buffer-${netty.version}.jar"/>
             <pathelement location="lib/netty-codec-${netty.version}.jar"/>
             <pathelement location="lib/netty-common-${netty.version}.jar"/>
+            <pathelement location="lib/netty-handler-${netty.version}.jar"/>
             <pathelement location="lib/netty-resolver-${netty.version}.jar"/>
             <pathelement location="lib/netty-transport-${netty.version}.jar"/>
             <pathelement location="lib/pcollections-${pcollections.version}.jar"/>
@@ -36,6 +37,7 @@
             <include name="netty-buffer-${netty.version}.jar"/>
             <include name="netty-codec-${netty.version}.jar"/>
             <include name="netty-common-${netty.version}.jar"/>
+            <include name="netty-handler-${netty.version}.jar"/>
             <include name="netty-resolver-${netty.version}.jar"/>
             <include name="netty-transport-${netty.version}.jar"/>
             <include name="pcollections-${pcollections.version}.jar"/>
@@ -161,6 +163,8 @@
     <target name="hostport">
         <property name="host" value="localhost"/>
         <property name="port" value="44000"/>
+        <property name="downloadDir" value="target"/>
+        <property name="logLevel" value="warn"/>
     </target>
 
     <target name="server">
@@ -228,6 +232,81 @@ echo "Hello World" | nc localhost ${port}
         </java>
     </target>
 
+    <target name="server.telnet" depends="compile, hostport">
+        <echo>
+            Server will be started on port ${port}
+        </echo>
+        <java
+                classpath="target/classes"
+                classname="com.infodesire.jvmcom.netty.telnet.TelnetServer"
+        >
+            <arg line="${port}"/>
+            <classpath refid="thirdparty.jars"/>
+        </java>
+    </target>
+
+    <target name="server.text" depends="compile, hostport">
+        <echo>
+            Server starting on port ${port}
+            Connect with: (g)telnet localhost ${port}
+        </echo>
+        <java
+                classpath="target/classes"
+                classname="com.infodesire.jvmcom.netty.text.TextServer"
+        >
+            <arg line="${port}"/>
+            <classpath refid="thirdparty.jars"/>
+        </java>
+    </target>
+
+    <target name="server.file" depends="compile, hostport">
+        <echo>
+            Server starting on port ${port}
+            As a client you can use:
+            ant client.file
+        </echo>
+        <java
+                classpath="target/classes"
+                classname="com.infodesire.jvmcom.netty.file.FileServer"
+        >
+            <arg line="-p ${port}"/>
+            <arg line="-l debug"/>
+            <classpath refid="thirdparty.jars"/>
+        </java>
+    </target>
+
+    <target name="client.telnet" depends="compile, hostport">
+        <java
+                classpath="target/classes"
+                classname="com.infodesire.jvmcom.netty.telnet.TelnetClient"
+        >
+            <arg line="${host}"/>
+            <arg line="${port}"/>
+            <classpath refid="thirdparty.jars"/>
+        </java>
+    </target>
+
+    <target name="client.file" depends="compile, hostport">
+
+        <java
+                classpath="target/classes"
+                classname="com.infodesire.jvmcom.netty.file.FileClient"
+        >
+            <arg line="-h ${host}"/>
+            <arg line="-p ${port}"/>
+            <arg line="-d ${downloadDir}"/>
+            <arg line="-l ${logLevel}"/>
+
+            <!-- -f file or -i for interactive mode -->
+            <arg line="-i" />
+            <!--
+            <arg line="-f build.xml" />
+            -->
+
+            <classpath refid="thirdparty.jars"/>
+        </java>
+    </target>
+
     <target name="tools.install" depends="properties">
 
         <mkdir dir="tools/ivy"/>
@@ -285,6 +364,7 @@ echo "Hello World" | nc localhost ${port}
         <junit
                 fork="true"
                 printsummary="on"
+                timeout="600000"
         >
             <!-- fork:true is necessary, because some tests use ant themselves -->
 
@@ -326,6 +406,7 @@ echo "Hello World" | nc localhost ${port}
         <junit
                 fork="true"
                 printsummary="on"
+                timeout="600000"
         >
             <!-- fork:true is necessary, because some tests use ant themselves -->
 
@@ -550,11 +631,17 @@ ant test .............................. Run unit tests
 ant integration ....................... Run integration tests
 ant publish ........................... Publish artifacts to team repo
 
-# servers
+# specialized servers and their clients
 
-ant server.echo ....................... Start an echo server
-ant server.time ....................... Start a time server
+ant server.echo ....................... Start the echo server
+ant server.time ....................... Start the time server
 ant client.time ....................... Run the time client
+ant server.telnet ..................... Start the telnet server
+ant client.telnet ..................... Run the telnet client
+ant server.text ....................... Start the text server
+ant server.file ....................... Start the file server
+ant client.file ....................... Run the file client
+
 
 # client server -------------------------------------------------------
 

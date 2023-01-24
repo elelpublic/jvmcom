@@ -1,8 +1,6 @@
 package com.infodesire.jvmcom.util;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -99,6 +97,52 @@ public class FileUtils {
             remaining -= count;
         }
 
+    }
+
+    /**
+     * @return Newly created directory in the place where temporary files are stored
+     * @throws IOException Not able to create a temp dir
+     *
+     */
+    public static File createTempDir() throws IOException {
+        return createTempDir( "tmp", null );
+    }
+
+    /**
+     * @param prefix Prefix of dir name (must be at least 3 chars)
+     * @param suffix Optional suffix of dir name (can be null)
+     * @return Newly created directory in the place where temporary files are stored
+     * @throws IOException Not able to create a temp dir
+     *
+     */
+    public static File createTempDir( String prefix, String suffix ) throws IOException {
+        File tmpFile = File.createTempFile( prefix, suffix );
+        File tmpDir = new File( tmpFile.getParentFile(), tmpFile.getName() );
+        tmpFile.delete();
+        tmpDir.mkdirs();
+        return tmpDir;
+    }
+
+    /**
+     * Delete a directory recursively
+     *
+     * @param dir Directory to delete
+     */
+    public static void rmdir( File dir ) {
+        if( dir.exists() ) {
+            File parent = dir.getParentFile();
+            for( File file : dir.listFiles() ) {
+                if( file.isDirectory() ) {
+                    if( !file.equals( dir ) && !file.equals( parent ) ) {
+                        rmdir( file );
+                    }
+                }
+                else {
+                    file.delete();
+                }
+            }
+        }
+        dir.delete();
     }
 
 }

@@ -5,6 +5,8 @@
       <root url="jar://$PROJECT_DIR$/lib/netty-buffer-4.1.86.Final.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/netty-common-4.1.86.Final.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/netty-codec-4.1.86.Final.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/netty-handler-4.1.86.Final.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/netty-resolver-4.1.86.Final.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
