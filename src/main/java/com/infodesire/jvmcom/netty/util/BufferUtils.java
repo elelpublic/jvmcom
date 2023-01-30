@@ -9,8 +9,8 @@ public class BufferUtils {
      * Read string from buffer until an end character was found.
      * If no end character was found, the buffers read index will be reset to the initial position.
      *
-     * @param buf Buffer to read
-     * @param end End character
+     * @param buf       Buffer to read
+     * @param end       End character
      * @param maxLength Max length of line
      * @return Line of text including end character or null if nothing was found.
      */
@@ -18,49 +18,71 @@ public class BufferUtils {
 
         buf.markReaderIndex();
 
-        StringBuffer line = new StringBuffer();
+        String line = null;
 
-        while( buf.readableBytes() > 0 && line.length() <= maxLength ) {
-            CharSequence c = buf.readCharSequence( 1, CharsetUtil.UTF_8 );
-            line.append( c );
-            if( c.charAt( 0 ) == end ) {
-                return line.toString();
-            }
+        try {
+            line = buf.readCharSequence( Math.min( maxLength, buf.readableBytes() ),
+                    CharsetUtil.UTF_8 ).toString();
+        }
+        catch( IndexOutOfBoundsException ex ) {
+            buf.resetReaderIndex();
+            return null;
         }
 
-        buf.resetReaderIndex();
-        return null;
+        if( line == null ) {
+            buf.resetReaderIndex();
+            return null;
+        }
+
+        int endIndex = line.indexOf( end );
+
+        if( endIndex == -1 ) {
+            buf.resetReaderIndex();
+            return null;
+        }
+
+        return line.substring( 0, endIndex + 1 );
 
     }
 
     /**
-     * Peak at buffer content an return it as a string. Read position will not be changed afterwards.
+     * Peak at buffer content and return it as a string. Read position will not be changed afterwards.
      *
-     * @param buf       Buffer to read
-     * @param maxLength Max length of line
+     * @param buf           Buffer to read
+     * @param maxLength     Max length of line
+     * @param stopAtLineEnd Only return first line
      * @return Line of text including end character or null if nothing was found.
      */
-    public static StringBuffer peakLineUntil( ByteBuf buf, int maxLength ) {
+    public static String peakLineUntil( ByteBuf buf, int maxLength, boolean stopAtLineEnd ) {
+
+        String result = null;
 
         buf.markReaderIndex();
-        StringBuffer line = new StringBuffer();
 
         try {
 
-            while( buf.readableBytes() > 0 && line.length() <= maxLength ) {
-                CharSequence c = buf.readCharSequence( 1, CharsetUtil.UTF_8 );
-                if( c.charAt( 0 ) == '\n' ) {
-                    break;
+            result = buf.readCharSequence( Math.min( maxLength, buf.readableBytes() ),
+                    CharsetUtil.UTF_8 ).toString();
+
+            if( result != null ) {
+
+                if( stopAtLineEnd ) {
+                    int eol = result.indexOf( "\n" );
+                    if( eol != -1 ) {
+                        result = result.substring( 0, eol );
+                    }
                 }
-                line.append( c );
+
             }
 
+        }
+        catch( IndexOutOfBoundsException ignored ) {
         }
         finally {
             buf.resetReaderIndex();
         }
 
-        return line;
+        return result;
 
     }
 

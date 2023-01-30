@@ -1,15 +1,20 @@
 package com.infodesire.jvmcom.netty;
 
+import com.infodesire.jvmcom.netty.util.BufferUtils;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.util.CharsetUtil;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -63,6 +68,69 @@ public class UnderstaneNettyTest {
 
     }
 
+    @Test
+    public void decodeMessagesFromChoppyByteStream() {
+
+        List<Message> messages = new ArrayList<>();
+        EmbeddedChannel channel = new EmbeddedChannel(
+                new MessageDecoder(),
+                new MessageStore( messages )
+        );
+
+        assertEquals( 0, messages.size() );
+
+        channel.writeInbound( Unpooled.copiedBuffer( "TE", CharsetUtil.UTF_8 ) );
+        channel.writeInbound( Unpooled.copiedBuffer( "XT ", CharsetUtil.UTF_8 ) );
+        channel.writeInbound( Unpooled.buffer().writeInt( 120 ) );
+
+        assertEquals( 1, messages.size() );
+        assertEquals( "TEXT", messages.get( 0 ).type );
+        assertEquals( 120, messages.get( 0 ).length );
+
+    }
+
+    static class Message {
+        String type;
+        int length;
+    }
+
+    static class MessageDecoder extends ByteToMessageDecoder {
+        protected void decode( ChannelHandlerContext channelHandlerContext, ByteBuf buf, List<Object> list ) throws Exception {
+            buf.markReaderIndex();
+            while( buf.readableBytes() > 0 ) {
+                String type = BufferUtils.readLineUntil( buf, ' ', 100 );
+                if( type != null ) {
+                    Message message = new Message();
+                    message.type = type.trim();
+                    try {
+                        message.length = buf.readInt();
+                        list.add( message );
+                        buf.markReaderIndex();
+                    }
+                    catch( IndexOutOfBoundsException ex ) {
+                        buf.resetReaderIndex(); // not enough data
+                        break;
+                    }
+                }
+                else {
+                    buf.resetReaderIndex(); // not enough data
+                    break;
+                }
+            }
+        }
+    }
+
+    static class MessageStore extends SimpleChannelInboundHandler<Message> {
+        private final List<Message> storage;
+        public MessageStore( List<Message> storage ) {
+            this.storage = storage;
+        }
+        protected void channelRead0( ChannelHandlerContext channelHandlerContext, Message message ) throws Exception {
+            storage.add( message );
+        }
+    }
+
+
     static class ToUpperCaseDecoder extends MessageToMessageDecoder<String> {
 
         protected void decode( ChannelHandlerContext channelHandlerContext, String input, List<Object> list ) throws Exception {
@@ -74,7 +142,9 @@ public class UnderstaneNettyTest {
 
         protected void channelRead0( ChannelHandlerContext ctx, String input ) throws Exception {
             StringBuffer rev = new StringBuffer();
-            input.chars().forEach( c -> { rev.insert( 0, (char) c ); } );
+            input.chars().forEach( c -> {
+                rev.insert( 0, (char) c );
+            } );
             ctx.write( rev.toString() );
         }
 
