@@ -21,15 +21,15 @@ public class BufferUtils {
         String line = null;
 
         try {
-            line = buf.readCharSequence( Math.min( maxLength, buf.readableBytes() ),
-                    CharsetUtil.UTF_8 ).toString();
+            CharSequence chars = buf.readCharSequence( Math.min( maxLength, buf.readableBytes() ),
+                    CharsetUtil.UTF_8 );
+            if( chars == null ) {
+                buf.resetReaderIndex();
+                return null;
+            }
+            line = chars.toString();
         }
         catch( IndexOutOfBoundsException ex ) {
-            buf.resetReaderIndex();
-            return null;
-        }
-
-        if( line == null ) {
             buf.resetReaderIndex();
             return null;
         }
@@ -41,7 +41,9 @@ public class BufferUtils {
             return null;
         }
 
-        return line.substring( 0, endIndex + 1 );
+        String result = line.substring( 0, endIndex + 1 );
+        buf.readerIndex( result.getBytes( CharsetUtil.UTF_8 ).length );
+        return result;
 
     }
 
@@ -61,10 +63,12 @@ public class BufferUtils {
 
         try {
 
-            result = buf.readCharSequence( Math.min( maxLength, buf.readableBytes() ),
-                    CharsetUtil.UTF_8 ).toString();
+            CharSequence chars = buf.readCharSequence( Math.min( maxLength, buf.readableBytes() ),
+                    CharsetUtil.UTF_8 );
 
-            if( result != null ) {
+            if( chars != null ) {
+
+                result = chars.toString();
 
                 if( stopAtLineEnd ) {
                     int eol = result.indexOf( "\n" );

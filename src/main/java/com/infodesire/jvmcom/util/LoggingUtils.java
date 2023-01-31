@@ -1,6 +1,5 @@
 package com.infodesire.jvmcom.util;
 
-import com.infodesire.jvmcom.clientserver.HandlerReply;
 import com.infodesire.jvmcom.services.logging.Level;
 import org.slf4j.Logger;
 
@@ -9,7 +8,7 @@ public class LoggingUtils {
 
     public static Level getLevel( Logger logger ) {
 
-        Level level = Level.OFF;
+        Level level = Level.ERROR;
 
         if( logger.isErrorEnabled() ) {
             level = Level.ERROR;
