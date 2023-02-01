@@ -39,6 +39,7 @@ public class ValuesServerTest {
       TestCase.assertTrue( client.ping() );
 
       server.stop( 100 );
+      Thread.yield();
       server.start();
 
       assertEquals( port, server.getPort() );
