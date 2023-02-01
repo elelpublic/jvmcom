@@ -113,6 +113,12 @@ public class LoggingRequestDecoderTest {
         channel.writeInbound( buf );
         assertNull( channel.readInbound() );
 
+        channel = new EmbeddedChannel( new LoggingRequestDecoder() );
+        buf = Unpooled.buffer();
+        buf.writeCharSequence( "main DEBUG 5\n\n", CharsetUtil.UTF_8 );
+        channel.writeInbound( buf );
+        assertNull( channel.readInbound() );
+
     }
 
     @Test

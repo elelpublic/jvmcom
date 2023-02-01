@@ -2,6 +2,7 @@ package com.infodesire.jvmcom.netty.logging;
 
 import com.infodesire.jvmcom.netty.util.BufferUtils;
 import com.infodesire.jvmcom.services.logging.Level;
+import com.infodesire.jvmcom.util.StringUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -28,26 +29,38 @@ public class LoggingRequestDecoder extends ByteToMessageDecoder {
             if( meta != null ) {
 
                 int levelIndex = meta.indexOf( ' ' );
-                if( levelIndex != -1 ) {
+                if( levelIndex == -1 ) {
+                    localLogger.error( "No category information found in logging request" );
+                }
+                else {
 
                     loggingRequest.category = meta.substring( 0, levelIndex ).trim();
                     meta = meta.substring( levelIndex ).trim();
 
                     int bytesIndex = meta.indexOf( ' ' );
-                    if( bytesIndex != -1 ) {
+                    if( bytesIndex == -1 ) {
+                        localLogger.error( "No debug level information found in logging request" );
+                    }
+                    else {
 
                         String levelName = meta.substring( 0, bytesIndex ).trim();
                         try {
                             loggingRequest.level = Level.valueOf( levelName );
                             meta = meta.substring( bytesIndex ).trim();
+                            if( StringUtils.isEmpty( meta ) ) {
+                                localLogger.error( "No size information found in logging request" );
+                            }
+                            else {
 
-                            int size = Integer.parseInt( meta );
+                                int size = Integer.parseInt( meta );
 
-                            if( buf.readableBytes() >= size ) {
-                                loggingRequest.message = buf.readCharSequence( size, CharsetUtil.UTF_8 ).toString();
-                                list.add( loggingRequest );
-                                buf.markReaderIndex();
-                                parseRequestOK = true;
+                                if( buf.readableBytes() >= size ) {
+                                    loggingRequest.message = buf.readCharSequence( size, CharsetUtil.UTF_8 ).toString();
+                                    list.add( loggingRequest );
+                                    buf.markReaderIndex();
+                                    parseRequestOK = true;
+                                }
+
                             }
 
                         }
@@ -56,7 +69,6 @@ public class LoggingRequestDecoder extends ByteToMessageDecoder {
                         }
 
                     }
-                    localLogger.error( "No size information found in logging request" );
 
                 }
 

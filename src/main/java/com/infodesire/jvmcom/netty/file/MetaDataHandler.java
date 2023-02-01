@@ -29,10 +29,6 @@ public class MetaDataHandler extends ChannelInboundHandlerAdapter {
             readModeAttribute.set( readMode );
         }
 
-        if( logger.isEnabledForLevel( Level.INFO ) ) {
-            logger.info( "Received in mode " + readMode + ": " + BufferUtils.peakLineUntil( buf, 100 ) );
-        }
-
         if( readMode == ReadMode.META ) {
 
             // check if a full line (ending with \n) is in the buffer
