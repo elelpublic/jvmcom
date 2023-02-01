@@ -101,13 +101,11 @@ public final class FileClient implements AutoCloseable {
 
         Thread.currentThread().setName( "_C-main-0-0" );
 
-        // Configure SSL.
         if( useSsl ) {
             sslCtx = ServerUtils.buildSslContext();
         }
 
         group = new NioEventLoopGroup( new DefaultThreadFactory( "_C-asyn" ) );
-        //FileClientHandler fileClientHandler = new FileClientHandler( new File( downloadDirName ) );
         BinaryFileDataHandler binaryFileDataHandler = new BinaryFileDataHandler( new File( downloadDirName ) );
         Bootstrap b = new Bootstrap();
         b.group( group )
