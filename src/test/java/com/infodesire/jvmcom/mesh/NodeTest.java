@@ -58,6 +58,7 @@ public class NodeTest {
     socketPool = new SocketPool();
 
     Mesh mesh = new Mesh( config, socketPool, new PrintMessageHandlerFactory(), new DefaultServiceFactory() );
+    Thread.yield();
 
     node1 = mesh.get( "node1" );
     node2 = mesh.get( "node2" );
@@ -69,14 +70,17 @@ public class NodeTest {
   public void tearDown() {
     try {
       node1.shutDown( 500 );
+      Thread.yield();
     }
     catch( Throwable ignored ) {}
     try {
       node2.shutDown( 500 );
+      Thread.yield();
     }
     catch( Throwable ignored ) {}
     try {
       node3.shutDown( 500 );
+      Thread.yield();
     }
     catch( Throwable ignored ) {}
   }
@@ -85,7 +89,9 @@ public class NodeTest {
   public void testPing() throws Exception {
 
     node1.join();
+    Thread.yield();
     node2.join();
+    Thread.yield();
 
     try(
             TextClient client1 = new TextClient( socketPool, node2.getAddress() );
@@ -98,7 +104,9 @@ public class NodeTest {
     }
 
     node1.shutDown( 100 );
+    Thread.yield();
     node2.shutDown( 100 );
+    Thread.yield();
 
   }
 
@@ -110,6 +118,7 @@ public class NodeTest {
     assertFalse( node2.isIn() );
 
     node1.join();
+    Thread.yield();
 
     assertTrue( node1.isIn() );
     assertFalse( node2.isIn() );
@@ -118,6 +127,7 @@ public class NodeTest {
     assertEquals( node1.getAddress(), node1.getActiveMembers().iterator().next() );
 
     node2.join();
+    Thread.yield();
 
     assertTrue( node1.isIn() );
     assertTrue( node2.isIn() );
@@ -131,19 +141,23 @@ public class NodeTest {
     assertTrue( node2.getActiveMembers().contains( node2.getAddress() ) );
 
     node1.shutDown( 1000 );
+    Thread.yield();
 
     assertEquals( 1, node2.getActiveMembers().size() );
     assertFalse( node2.getActiveMembers().contains( node1.getAddress() ) );
     assertTrue( node2.getActiveMembers().contains( node2.getAddress() ) );
 
     node2.shutDown( 1000 );
+    Thread.yield();
 
     node3.join();
+    Thread.yield();
 
     assertEquals( 1, node3.getActiveMembers().size() );
     assertTrue( node3.getActiveMembers().contains( node3.getAddress() ) );
 
     node3.shutDown( 1000 );
+    Thread.yield();
 
   }
 
@@ -152,8 +166,11 @@ public class NodeTest {
   public void testMessages() throws Exception {
 
     node1.join();
+    Thread.yield();
     node2.join();
+    Thread.yield();
     node3.join();
+    Thread.yield();
 
     TextClient client = new TextClient( socketPool, node2.getAddress() );
     assertEquals( "OK", "" + node1.dm( client, "hi" ) );
