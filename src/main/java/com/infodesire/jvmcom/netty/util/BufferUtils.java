@@ -1,5 +1,6 @@
 package com.infodesire.jvmcom.netty.util;
 
+import com.infodesire.jvmcom.util.StringUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.CharsetUtil;
 
@@ -16,6 +17,7 @@ public class BufferUtils {
      */
     public static String readLineUntil( ByteBuf buf, char end, int maxLength ) {
 
+        int oldReaderIndex = buf.readerIndex();
         buf.markReaderIndex();
 
         String line = null;
@@ -42,7 +44,7 @@ public class BufferUtils {
         }
 
         String result = line.substring( 0, endIndex + 1 );
-        buf.readerIndex( result.getBytes( CharsetUtil.UTF_8 ).length );
+        buf.readerIndex( oldReaderIndex + result.getBytes( CharsetUtil.UTF_8 ).length );
         return result;
 
     }
@@ -85,6 +87,32 @@ public class BufferUtils {
         finally {
             buf.resetReaderIndex();
         }
+
+        return result;
+
+    }
+
+    /**
+     * Create a visual display of a buffer containing text with markers
+     *
+     * @param buf Buffer containing text
+     * @return Visual representation of a text buffer and its state variables
+     *
+     */
+    public static String debugTextBuffer( ByteBuf buf ) {
+
+        buf.markReaderIndex();
+        buf.readerIndex( 0 );
+        String string = buf.readCharSequence( buf.readableBytes(), CharsetUtil.UTF_8 ).toString();
+        buf.resetReaderIndex();
+        if( string == null ) {
+            string = "";
+        }
+
+        String result = "\"" + string.replace( '\r', '_' ).replace( '\n', '_' ).replace( '\t', '_' ) + "\"\n";
+        result += "|" + StringUtils.repeat( "-", buf.readerIndex() ) + "^R" + StringUtils.repeat( " ", buf.readableBytes() + 1 )
+                + "(" + buf.readerIndex() + ") (" + buf.readableBytes() + " more)\n";
+        result += "|" + StringUtils.repeat( "-", buf.writerIndex() ) + "^W (" + buf.writerIndex() + ")";
 
         return result;
 

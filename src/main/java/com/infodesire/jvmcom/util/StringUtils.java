@@ -1,5 +1,7 @@
 package com.infodesire.jvmcom.util;
 
+import java.util.Collections;
+
 public class StringUtils {
 
     /**
@@ -34,6 +36,18 @@ public class StringUtils {
         else {
             return text1.equals( text2 );
         }
+    }
+
+    /**
+     * Repeat string s n times
+     *
+     * @param s Input string
+     * @param n Number of repeats
+     * @return s repeated n times
+     *
+     */
+    public static String repeat( String s, int n ) {
+        return String.join("", Collections.nCopies(n, s));
     }
 
 }
