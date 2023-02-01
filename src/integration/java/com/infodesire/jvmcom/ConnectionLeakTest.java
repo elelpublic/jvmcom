@@ -83,7 +83,7 @@ public class ConnectionLeakTest {
     }
 
     @Test(timeout = 10000)
-    public void testMultipleJoinLeave() throws IOException {
+    public void testMultipleJoinLeave() throws IOException, InterruptedException {
 
         int CONNECTION_COUNT = 2000;
 
@@ -96,6 +96,7 @@ public class ConnectionLeakTest {
             Thread.yield();
             logger.debug( "BEFORE LEAVE " + i );
             node1.leave( timeout );
+            Thread.yield();
             logger.debug( "BEFORE JOIN " + i );
             node1.join();
         }
