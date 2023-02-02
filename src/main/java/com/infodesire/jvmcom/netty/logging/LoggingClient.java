@@ -73,7 +73,7 @@ public class LoggingClient implements AutoCloseable {
         }
 
         group = new NioEventLoopGroup( new DefaultThreadFactory( threadBaseName ) );
-        LoggingClientHandler loggingClient = new LoggingClientHandler( this );
+        LoggingClientHandler loggingClient = new LoggingClientHandler( this, config );
 
         Bootstrap b = new Bootstrap();
         b.group( group )

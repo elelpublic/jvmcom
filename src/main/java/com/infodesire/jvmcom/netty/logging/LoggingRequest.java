@@ -10,6 +10,8 @@ import io.netty.util.AttributeKey;
  */
 public class LoggingRequest {
 
+    String clientName;
+
     String category;
     
     Level level;

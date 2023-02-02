@@ -1,7 +1,9 @@
 package com.infodesire.jvmcom.netty.logging;
 
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 
 /**
@@ -15,9 +17,17 @@ public class LoggingClientHandler extends SimpleChannelInboundHandler<LoggingRep
 
     private final LoggingClient loggingClient;
     private static final Logger localLogger = LoggingClient.localLogger;
+    private final LoggingClientConfig config;
 
-    public LoggingClientHandler( LoggingClient loggingClient ) {
+    public LoggingClientHandler( LoggingClient loggingClient, LoggingClientConfig config ) {
         this.loggingClient = loggingClient;
+        this.config = config;
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        ctx.writeAndFlush( Unpooled.copiedBuffer( "CLIENT " + config.clientName + "\n",
+                CharsetUtil.UTF_8 ) );
     }
 
     @Override

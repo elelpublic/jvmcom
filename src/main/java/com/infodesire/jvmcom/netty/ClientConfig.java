@@ -5,6 +5,8 @@ package com.infodesire.jvmcom.netty;
  */
 public class ClientConfig {
 
+    public String clientName;
+
     public String host;
 
     public int port;

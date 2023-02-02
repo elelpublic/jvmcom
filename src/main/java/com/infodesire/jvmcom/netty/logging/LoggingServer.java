@@ -8,6 +8,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.ssl.SslContext;
+import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,8 @@ public class LoggingServer implements AutoCloseable {
      * Logger for local problems of the server (not the remote logger)
      */
     public static final Logger localLogger = LoggerFactory.getLogger( "LoggingServer" );
+
+    public static final AttributeKey<String> CLIENT_NAME_ATTR = AttributeKey.newInstance( "CLIENT_NAME" );
 
     private final ChannelFuture channelFuture;
     private final NioEventLoopGroup bossGroup;

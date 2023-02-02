@@ -50,6 +50,7 @@ public class LoggingServerTest {
             LoggingServerConfig serverConfig = new LoggingServerConfig();
             serverConfig.port = port;
             LoggingClientConfig clientConfig = new LoggingClientConfig();
+            clientConfig.clientName = "node1";
             clientConfig.host = host;
             clientConfig.port = port;
 
@@ -70,6 +71,7 @@ public class LoggingServerTest {
 
             assertEquals( 1, messages.size() );
             LoggingRequest message = messages.get( 0 );
+            assertEquals( "node1", message.clientName );
             assertEquals( "main", message.category );
             assertEquals( Level.DEBUG, message.level );
             assertEquals( "Hello world", message.message );

@@ -6,6 +6,8 @@ import com.infodesire.jvmcom.util.StringUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.util.Attribute;
+import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 
@@ -18,11 +20,32 @@ public class LoggingRequestDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode( ChannelHandlerContext ctx, ByteBuf buf, List<Object> list ) throws Exception {
 
+        Attribute<String> clientName = ctx.attr( LoggingServer.CLIENT_NAME_ATTR );
+        if( clientName.get() == null ) {
+            String name = BufferUtils.readLineUntil( buf, '\n', 300 );
+            if( name == null ) {
+                name = "unknkown";
+                localLogger.warn( "No client name received" );
+            }
+            else {
+                if( name.startsWith( "CLIENT " ) ) {
+                    name = name.substring( 7 ).trim();
+                    clientName.set( name );
+                }
+                else {
+                    localLogger.warn( "Client name should be submitted like this: CLIENT NAME, but found '" + name + "'" );
+                }
+
+            }
+            clientName.set( name );
+        }
+
         while( buf.readableBytes() > 0 ) {
 
             boolean parseRequestOK = false;
 
             LoggingRequest loggingRequest = new LoggingRequest();
+            loggingRequest.clientName = clientName.get();
 
             String meta = BufferUtils.readLineUntil( buf, '\n', 100 );
 
