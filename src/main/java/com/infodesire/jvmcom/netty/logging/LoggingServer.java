@@ -9,6 +9,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.ssl.SslContext;
 import io.netty.util.AttributeKey;
+import io.netty.util.ResourceLeakDetector;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,12 @@ import java.security.cert.CertificateException;
  */
 public class LoggingServer implements AutoCloseable {
 
+//    static {
+//        System.setProperty( "org.slf4j.simpleLogger.defaultLogLevel", "debug" );
+//        System.setProperty( "org.slf4j.simpleLogger.log.io.netty", "debug" );
+//        ResourceLeakDetector.setLevel( ResourceLeakDetector.Level.PARANOID );
+//    }
+
     /**
      * Logger for local problems of the server (not the remote logger)
      */
@@ -32,7 +39,6 @@ public class LoggingServer implements AutoCloseable {
     private final ChannelFuture channelFuture;
     private final NioEventLoopGroup bossGroup;
     private final NioEventLoopGroup workerGroup;
-    private static final LoggingRequestDecoder decoder = new LoggingRequestDecoder();
 
     public LoggingServer( LoggingServerConfig config ) throws CertificateException, SSLException, InterruptedException {
 
@@ -49,9 +55,6 @@ public class LoggingServer implements AutoCloseable {
             threadName = config.workerThreadName;
         }
         workerGroup = new NioEventLoopGroup( new DefaultThreadFactory( threadName ) );
-
-        SimpleChannelInboundHandler<LoggingRequest> handler = config.loggingRequestHandler != null
-                ? config.loggingRequestHandler : new LoggingRequestHandler();
 
         ServerBootstrap b = new ServerBootstrap();
         b.group( bossGroup, workerGroup )
@@ -72,8 +75,9 @@ public class LoggingServer implements AutoCloseable {
 
                         pipeline.addLast( new StringEncoder() );
 
-                        pipeline.addLast( decoder );
-                        pipeline.addLast( handler );
+                        pipeline.addLast( new LoggingRequestDecoder() );
+                        pipeline.addLast( config.loggingRequestHandler != null
+                                ? config.loggingRequestHandler : new LoggingRequestHandler() );
 
                     }
                 } );
@@ -90,6 +94,9 @@ public class LoggingServer implements AutoCloseable {
     }
 
     public static void main( String[] args ) throws Exception {
+
+        System.out.println( "Press enter to continue..." );
+        System.in.read();
 
         int port = 44000;
         if( args.length > 0 ) {

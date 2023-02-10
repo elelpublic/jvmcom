@@ -1,5 +1,6 @@
 package com.infodesire.jvmcom.netty.logging;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -20,6 +21,7 @@ public class LoggingRequestHandler extends SimpleChannelInboundHandler<LoggingRe
         Logger logger = LoggerFactory.getLogger( loggingRequest.category );
         logger.atLevel( loggingRequest.level.asSlf4jLevel() ).log( "[" + clientName.get() + "] "
                 + loggingRequest.message );
+        System.out.println( loggingRequest.toString() );
 
     }
 

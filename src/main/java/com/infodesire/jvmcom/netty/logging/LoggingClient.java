@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLException;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.security.cert.CertificateException;
@@ -166,6 +168,49 @@ public class LoggingClient implements AutoCloseable {
     public void close() throws Exception {
         group.shutdownGracefully();
         channel.close().sync();
+    }
+
+    public static void main( String[] args ) throws Exception {
+
+        LoggingClientConfig config = new LoggingClientConfig();
+
+        config.host = "localhost";
+        if( args.length > 0 ) {
+            config.host = args[ 0 ];
+        }
+
+        config.port = 44000;
+        if( args.length > 1 ) {
+            config.port = Integer.parseInt( args[ 1 ] );
+        }
+
+        LoggingClient client = new LoggingClient( config );
+
+        BufferedReader in = new BufferedReader( new InputStreamReader( System.in ) );
+        while( true ) {
+            System.out.println( "Enter a logging request like this CATEGORY LEVEL message or EXIT to quit." );
+            String line = in.readLine();
+            if( line != null ) {
+                line = line.trim();
+                if( line.equalsIgnoreCase( "EXIT" ) ) {
+                    client.close();
+                    break;
+                }
+                else {
+                    int index = line.indexOf( " " );
+                    String category = line.substring( 0, index );
+                    line = line.substring( index ).trim();
+                    index = line.indexOf( " " );
+                    String levelName = line.substring( 0, index );
+                    line = line.substring( index ).trim();
+                    Level level = Level.valueOf( levelName );
+                    client.log( category, level, line );
+                }
+            }
+        }
+
+        System.out.println( "Bye" );
+
     }
 
 }

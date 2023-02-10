@@ -4,6 +4,7 @@ import com.infodesire.jvmcom.netty.util.BufferUtils;
 import com.infodesire.jvmcom.services.logging.Level;
 import com.infodesire.jvmcom.util.StringUtils;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.util.Attribute;

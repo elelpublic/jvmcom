@@ -190,61 +190,6 @@
         </java>
     </target>
 
-    <target name="server.echo" depends="compile, hostport">
-        <echo>
-Server will be started on port ${port}
-To test the server try this:
-echo "Hello World" | nc localhost ${port}
-        </echo>
-        <java
-            classpath="target/classes"
-            classname="com.infodesire.jvmcom.netty.echo.EchoServer"
-            >
-            <arg line="${port}"/>
-            <classpath refid="thirdparty.jars"/>
-        </java>
-    </target>
-
-    <target name="server.time" depends="compile, hostport">
-        <echo>
-            Server will be started on port ${port}
-            To test the server try this:
-            nc localhost ${port}
-            !But remember the result is binary!
-        </echo>
-        <java
-                classpath="target/classes"
-                classname="com.infodesire.jvmcom.netty.time.TimeServer"
-        >
-            <arg line="${port}"/>
-            <classpath refid="thirdparty.jars"/>
-        </java>
-    </target>
-
-    <target name="client.time" depends="compile, hostport">
-        <java
-                classpath="target/classes"
-                classname="com.infodesire.jvmcom.netty.time.TimeClient"
-        >
-            <arg line="${host}"/>
-            <arg line="${port}"/>
-            <classpath refid="thirdparty.jars"/>
-        </java>
-    </target>
-
-    <target name="server.telnet" depends="compile, hostport">
-        <echo>
-            Server will be started on port ${port}
-        </echo>
-        <java
-                classpath="target/classes"
-                classname="com.infodesire.jvmcom.netty.telnet.TelnetServer"
-        >
-            <arg line="${port}"/>
-            <classpath refid="thirdparty.jars"/>
-        </java>
-    </target>
-
     <target name="server.text" depends="compile, hostport">
         <echo>
             Server starting on port ${port}
@@ -275,17 +220,6 @@ echo "Hello World" | nc localhost ${port}
         </java>
     </target>
 
-    <target name="client.telnet" depends="compile, hostport">
-        <java
-                classpath="target/classes"
-                classname="com.infodesire.jvmcom.netty.telnet.TelnetClient"
-        >
-            <arg line="${host}"/>
-            <arg line="${port}"/>
-            <classpath refid="thirdparty.jars"/>
-        </java>
-    </target>
-
     <target name="client.file" depends="compile, hostport">
 
         <java
@@ -302,6 +236,35 @@ echo "Hello World" | nc localhost ${port}
             <!--
             <arg line="-f build.xml" />
             -->
+
+            <classpath refid="thirdparty.jars"/>
+        </java>
+    </target>
+
+    <target name="server.logging" depends="compile, hostport">
+        <echo>
+            Server starting on port ${port}
+            As a client you can use:
+            ant client.logging
+        </echo>
+        <java
+                fork="true"
+                jvmargs="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5000"
+                classpath="target/classes"
+                classname="com.infodesire.jvmcom.netty.logging.LoggingServer"
+        >
+            <arg line="${port}"/>
+            <classpath refid="thirdparty.jars"/>
+        </java>
+    </target>
+
+    <target name="client.logging" depends="compile, hostport">
+
+        <java
+                classpath="target/classes"
+                classname="com.infodesire.jvmcom.netty.logging.LoggingClient"
+        >
+            <arg line="${host} ${port}"/>
 
             <classpath refid="thirdparty.jars"/>
         </java>
@@ -633,25 +596,11 @@ ant publish ........................... Publish artifacts to team repo
 
 # specialized servers and their clients
 
-ant server.echo ....................... Start the echo server
-ant server.time ....................... Start the time server
-ant client.time ....................... Run the time client
-ant server.telnet ..................... Start the telnet server
-ant client.telnet ..................... Run the telnet client
+ant server.logging .................... Start the logging server
+ant client.logging .................... Run the logging client
 ant server.text ....................... Start the text server
 ant server.file ....................... Start the file server
 ant client.file ....................... Run the file client
-
-
-# client server -------------------------------------------------------
-
-ant server ............................ Start server in terminal
-ant client ............................ Start client in terminal
-
-Options:
-
--Dhost=locahost ....................... Host to connect client to
--Dport=port ........................... Port for server or client connection
 
 
 # mesh tomcat ---------------------------------------------------------
