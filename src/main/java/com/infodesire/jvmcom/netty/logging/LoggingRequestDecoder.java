@@ -7,7 +7,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.util.Attribute;
-import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 
@@ -33,7 +32,7 @@ public class LoggingRequestDecoder extends ByteToMessageDecoder {
                     clientName.set( name );
                 }
                 else {
-                    localLogger.warn( "Client name should be submitted like this: CLIENT NAME, but found '" + name + "'" );
+                    localLogger.warn( "Client name should be submitted like this: CLIENT <name>, but found '" + name + "'" );
                 }
 
             }

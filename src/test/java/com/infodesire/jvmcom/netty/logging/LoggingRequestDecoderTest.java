@@ -16,13 +16,12 @@ public class LoggingRequestDecoderTest {
 
         EmbeddedChannel channel = new EmbeddedChannel( new LoggingRequestDecoder() );
 
-        ByteBuf buf = Unpooled.buffer();
-        buf.writeCharSequence( "main DEBUG 5\nHello", CharsetUtil.UTF_8 );
-
-        channel.writeInbound( buf );
+        channel.writeInbound( Unpooled.copiedBuffer( "CLIENT test\n", CharsetUtil.UTF_8 ) );
+        channel.writeInbound( Unpooled.copiedBuffer( "main DEBUG 5\nHello", CharsetUtil.UTF_8 ) );
 
         LoggingRequest loggingRequest = channel.readInbound();
 
+        assertEquals( "test", loggingRequest.clientName );
         assertEquals( "main", loggingRequest.category );
         assertEquals( Level.DEBUG, loggingRequest.level );
         assertEquals( "Hello", loggingRequest.message );
@@ -34,19 +33,19 @@ public class LoggingRequestDecoderTest {
 
         EmbeddedChannel channel = new EmbeddedChannel( new LoggingRequestDecoder() );
 
-        ByteBuf buf = Unpooled.buffer();
-        buf.writeCharSequence( "main DEBUG 5\nHellosub INFO 3\nYo!", CharsetUtil.UTF_8 );
-
-        channel.writeInbound( buf );
+        channel.writeInbound( Unpooled.copiedBuffer( "CLIENT test\n", CharsetUtil.UTF_8 ) );
+        channel.writeInbound( Unpooled.copiedBuffer( "main DEBUG 5\nHellosub INFO 3\nYo!", CharsetUtil.UTF_8 ) );
 
         LoggingRequest loggingRequest = channel.readInbound();
 
+        assertEquals( "test", loggingRequest.clientName );
         assertEquals( "main", loggingRequest.category );
         assertEquals( Level.DEBUG, loggingRequest.level );
         assertEquals( "Hello", loggingRequest.message );
 
         loggingRequest = channel.readInbound();
 
+        assertEquals( "test", loggingRequest.clientName );
         assertEquals( "sub", loggingRequest.category );
         assertEquals( Level.INFO, loggingRequest.level );
         assertEquals( "Yo!", loggingRequest.message );
@@ -59,19 +58,19 @@ public class LoggingRequestDecoderTest {
 
         EmbeddedChannel channel = new EmbeddedChannel( new LoggingRequestDecoder() );
 
-        ByteBuf buf = Unpooled.buffer();
-        buf.writeCharSequence( "main DEBUG 6\nH\u00eallosub INFO 4\nY\u014C!", CharsetUtil.UTF_8 );
-
-        channel.writeInbound( buf );
+        channel.writeInbound( Unpooled.copiedBuffer( "CLIENT test\n", CharsetUtil.UTF_8 ) );
+        channel.writeInbound( Unpooled.copiedBuffer( "main DEBUG 6\nH\u00eallosub INFO 4\nY\u014C!", CharsetUtil.UTF_8 ) );
 
         LoggingRequest loggingRequest = channel.readInbound();
 
+        assertEquals( "test", loggingRequest.clientName );
         assertEquals( "main", loggingRequest.category );
         assertEquals( Level.DEBUG, loggingRequest.level );
         assertEquals( "H\u00eallo", loggingRequest.message );
 
         loggingRequest = channel.readInbound();
 
+        assertEquals( "test", loggingRequest.clientName );
         assertEquals( "sub", loggingRequest.category );
         assertEquals( Level.INFO, loggingRequest.level );
         assertEquals( "Y\u014C!", loggingRequest.message );
@@ -83,10 +82,8 @@ public class LoggingRequestDecoderTest {
 
         EmbeddedChannel channel = new EmbeddedChannel( new LoggingRequestDecoder() );
 
-        ByteBuf buf = Unpooled.buffer();
-        buf.writeCharSequence( "main DEBUG 4\nHello", CharsetUtil.UTF_8 );
-
-        channel.writeInbound( buf );
+        channel.writeInbound( Unpooled.copiedBuffer( "CLIENT test\n", CharsetUtil.UTF_8 ) );
+        channel.writeInbound( Unpooled.copiedBuffer( "main DEBUG 4\nHello", CharsetUtil.UTF_8 ) );
 
         LoggingRequest loggingRequest = channel.readInbound();
 

@@ -1,7 +1,6 @@
 package com.infodesire.jvmcom.netty.logging;
 
 import com.infodesire.jvmcom.services.logging.Level;
-import io.netty.util.AttributeKey;
 
 /**
  * Meta data of a log request:
@@ -29,7 +28,7 @@ public class LoggingRequest {
      *
      */
     public String toString() {
-        return ( category + " " + level + " " + message ).replaceAll( "(\r\n)*", "" );
+        return ( clientName + " " + category + " " + level + " " + message ).replaceAll( "(\r\n)*", "" );
     }
     
 }

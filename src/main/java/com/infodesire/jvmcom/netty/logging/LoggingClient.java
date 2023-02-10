@@ -1,6 +1,5 @@
 package com.infodesire.jvmcom.netty.logging;
 
-import com.infodesire.jvmcom.netty.util.BufferUtils;
 import com.infodesire.jvmcom.netty.util.ServerUtils;
 import com.infodesire.jvmcom.services.logging.Level;
 import io.netty.bootstrap.Bootstrap;
@@ -24,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.security.cert.CertificateException;
 
 /**
@@ -121,6 +122,25 @@ public class LoggingClient implements AutoCloseable {
     protected void setLevel( String category, Level level ) {
         levels = levels.plus( category, level );
     }
+
+    /**
+     * Send a logging request to server
+     *
+     * @param category Category of message (=name of logger on server)
+     * @param level Log level
+     * @param message Log message
+     * @param ex Exception causing this message
+     *
+     */
+    public void log( String category, Level level, String message, Throwable ex ) throws InterruptedException {
+
+        StringWriter stackTrace = new StringWriter();
+        PrintWriter out = new PrintWriter( stackTrace );
+        message = message + "\n" + stackTrace;
+        log( category, level, message );
+
+    }
+
 
     /**
      * Send a logging request to server
