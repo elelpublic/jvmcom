@@ -13,17 +13,17 @@ using lettuce as a java client.
 The new project is called rcache.
 
 The code here is not stable enough for production. It can be used
-to gain at least some introductory knowledge into netty.
+to gain at least some introductory knowledge into using netty.
 
 Netty is a powerhouse for java networking. It is also very complex
-and low level. Of course it is one abstraction and optimization
+and low level. Of course, it is one abstraction and optimization
 above raw java io and nio, but still it is low.
 
-Netty is high performance netowrking if you have to develop a
+Netty is high performance networking if you have to develop a
 large client-server or cluster architecture. It has all the
 http and ssl built in already. It is very powerful.
 
-It is like an assemly language, when I needed C or Java.
+It is like an assembly language, when I needed C or Java.
 
 `* * *`
 
