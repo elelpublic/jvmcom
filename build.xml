@@ -568,7 +568,8 @@
         <!-- copy sources -->
         <echo>Uploading target/jvmcom-${jvmcom.version}-src.jar to ${publish.team.user}@${publish.team.server}:${publish.team.path.sources}</echo>
         <scp
-                file="target/jvmcom-${jvmcom.version}.jar"
+                file="target/jvmcom-${jvmcom.version}-src
+                .jar"
                 todir="${publish.team.user}@${publish.team.server}:${publish.team.path.sources}"
                 keyfile="${publish.team.keyfile}"
                 verbose="false"
